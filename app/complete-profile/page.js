@@ -32,6 +32,7 @@ export default function CompleteProfilePage() {
       full_name: user.user_metadata?.full_name || user.user_metadata?.name || "",
       role,
       school,
+      email: user.email,
     });
 
     setLoading(false);
