@@ -17,6 +17,13 @@ export default async function DashboardPage() {
     .maybeSingle();
   if (!profile) redirect("/complete-profile");
 
+  
+  const { data: credits } = await supabase
+    .from("referral_credits")
+    .select("amount")
+    .eq("referrer_id", user.id);
+  const totalEarned = (credits || []).reduce((sum, c) => sum + Number(c.amount), 0);
+
   // Tutors need admin approval before seeing the full dashboard
   if (profile.role === "tutor" && profile.tutor_status !== "approved") {
     return (
@@ -65,6 +72,18 @@ export default async function DashboardPage() {
                 <a href="/tutor/courses">Manage my courses →</a>
               </p>
             )}
+
+      <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", margin: "1rem 0" }}>
+        <p style={{ margin: 0 }}>
+          <strong>Your referral code:</strong> {profile.referral_code}
+        </p>
+        <p style={{ margin: "6px 0 0", fontSize: 14, color: "#666" }}>
+          Share this link: {typeof window !== "undefined" ? window.location.origin : ""}/signup?ref={profile.referral_code}
+        </p>
+        <p style={{ margin: "6px 0 0" }}>
+          <strong>Total earned:</strong> ₦{totalEarned}
+        </p>
+      </div>
 
       <SignOutButton />
     </main>

@@ -24,18 +24,11 @@ export default async function ApplyTutorPage() {
 
   const { data: courses } = await supabase
     .from("courses")
-    .select(`
-      id, code, title, status,
-      department:departments(
-        name,
-        faculty:faculties(name, school:schools(name))
-      )
-    `)
-    .eq("status", "unclaimed");
+    .select("id, code, title, status")
+    .eq("status", "unclaimed")
+    .eq("department_id", profile.department_id);
 
-  const available = (courses || []).filter(
-    (c) => c.department?.faculty?.school?.name === profile.school
-  );
+  const available = courses || [];
 
   return (
     <main style={{ maxWidth: 600, margin: "3rem auto", fontFamily: "sans-serif" }}>

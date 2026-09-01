@@ -7,7 +7,6 @@ export default async function CoursesPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -15,55 +14,55 @@ export default async function CoursesPage() {
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
-
   if (!profile) redirect("/complete-profile");
 
-  const { data: courses } = await supabase.from("courses").select(`
-    id, code, title, status,
-    tutor:profiles(full_name),
-    department:departments(
-      name,
-      faculty:faculties(
-        name,
-        school:schools(name)
-      )
-    )
-  `);
+  if (!profile.department_id) {
+    return (
+      <main style={{ maxWidth: 700, margin: "3rem auto", fontFamily: "sans-serif" }}>
+        <p>Your account doesn&apos;t have a department set. Please contact an admin.</p>
+      </main>
+    );
+  }
 
-  const mine = (courses || []).filter(
-    (c) => c.department?.faculty?.school?.name === profile.school
-  );
+  const { data: courses } = await supabase
+    .from("courses")
+    .select("id, code, title, status, tutor:profiles(full_name)")
+    .eq("department_id", profile.department_id);
+
+  const { data: enrollments } = await supabase
+    .from("enrollments")
+    .select("course_id, trial_ends_at, paid_until")
+    .eq("student_id", user.id);
+
+  const enrollmentMap = new Map((enrollments || []).map((e) => [e.course_id, e]));
+
+  function accessLabel(courseId) {
+    const e = enrollmentMap.get(courseId);
+    if (!e) return "Not enrolled — free preview only";
+    const now = new Date();
+    if (now < new Date(e.trial_ends_at)) return "Free trial active";
+    if (e.paid_until && now < new Date(e.paid_until)) return "Full access (paid)";
+    return "Trial ended — preview only";
+  }
 
   return (
     <main style={{ maxWidth: 700, margin: "3rem auto", fontFamily: "sans-serif" }}>
-      <h1>Courses at {profile.school}</h1>
+      <h1>Courses in your department</h1>
 
-      {mine.length === 0 && <p>No courses added for your school yet.</p>}
+      {(!courses || courses.length === 0) && <p>No courses added for your department yet.</p>}
 
       <ul style={{ listStyle: "none", padding: 0 }}>
-        {mine.map((c) => (
-          <li
-            key={c.id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              padding: "1rem",
-              marginBottom: "0.75rem",
-            }}
-          >
-            <strong>
-              {c.code} — {c.title}
-            </strong>
+        {(courses || []).map((c) => (
+          <li key={c.id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", marginBottom: "0.75rem" }}>
+            <strong>{c.code} — {c.title}</strong>
             <div style={{ fontSize: 14, color: "#666" }}>
-              {c.department?.faculty?.name} · {c.department?.name}
+              {c.status === "active" ? `Taught by ${c.tutor?.full_name || "a Tutor"}` : "Not yet adopted by a Tutor"}
             </div>
-            <div style={{ marginTop: 6 }}>
-              {c.status === "active" ? (
-                <span>✅ Taught by {c.tutor?.full_name || "a Tutor"}</span>
-              ) : (
-                <span style={{ color: "#b8860b" }}>⏳ Not yet adopted by a Tutor</span>
-              )}
-            </div>
+            {c.status === "active" && (
+              <div style={{ marginTop: 6 }}>
+                <span>{accessLabel(c.id)}</span> <a href={`/courses/${c.id}`}>Open course →</a>
+              </div>
+            )}
           </li>
         ))}
       </ul>
