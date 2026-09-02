@@ -54,7 +54,7 @@ export default function Home() {
         <div className="wrap">
           <h2>How Coursemate works</h2>
           <p className="section-lede">
-            The same platform, two sides — students studying, and the students who already passed teaching them.
+            The same platform, two sides: students studying, and the students who already passed teaching them.
           </p>
 
           <div className="steps-grid">
@@ -64,7 +64,7 @@ export default function Home() {
                 <span className="step__num">1</span>
                 <div>
                   <p className="step__title">Pick your department</p>
-                  <p className="step__body">Only courses from your own department show up — nothing irrelevant to sift through.</p>
+                  <p className="step__body">Only courses from your own department show up; nothing irrelevant to sift through.</p>
                 </div>
               </div>
               <div className="step">
@@ -123,7 +123,7 @@ export default function Home() {
             </div>
             <div className="feature">
               <p className="feature__title">Tutor-vetted content</p>
-              <p className="feature__body">Every tutor is reviewed by an admin before their course goes live — not just anyone can post.</p>
+              <p className="feature__body">Every tutor is reviewed by an admin before their course goes live so not just anyone can post.</p>
             </div>
             <div className="feature">
               <p className="feature__title">A real free preview</p>

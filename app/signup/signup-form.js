@@ -63,7 +63,7 @@ export default function SignupForm() {
   }
 
   return (
-    <main style={{ maxWidth: 400, margin: "4rem auto", fontFamily: "sans-serif" }}>
+    <main className="app-container app-container--narrow">
       <h1>Sign up</h1>
 
       <form onSubmit={handleSignup} style={{ display: "flex", flexDirection: "column", gap: 12 }}>

@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import MarkPaidButton from "./mark-paid-button";
+import { MAX_TUTOR_COURSES } from "@/lib/config";
+import { sanitizeHtml } from "@/lib/sanitize";
+import ActionButton from "@/components/action-button";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -52,6 +54,16 @@ export default async function AdminPage() {
 
     if (!app) return;
 
+    const { count: currentCourseCount } = await supabase
+      .from("courses")
+      .select("id", { count: "exact", head: true })
+      .eq("tutor_id", app.tutor_id);
+
+    if ((currentCourseCount || 0) >= MAX_TUTOR_COURSES) {
+      revalidatePath("/admin");
+      return;
+    }
+
     const {
       data: { user: reviewer },
     } = await supabase.auth.getUser();
@@ -61,15 +73,8 @@ export default async function AdminPage() {
       .update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: reviewer.id })
       .eq("id", applicationId);
 
-    await supabase
-      .from("profiles")
-      .update({ tutor_status: "approved" })
-      .eq("id", app.tutor_id);
-
-    await supabase
-      .from("courses")
-      .update({ tutor_id: app.tutor_id, status: "active" })
-      .eq("id", app.course_id);
+    await supabase.from("profiles").update({ tutor_status: "approved" }).eq("id", app.tutor_id);
+    await supabase.from("courses").update({ tutor_id: app.tutor_id, status: "active" }).eq("id", app.course_id);
 
     revalidatePath("/admin");
   }
@@ -96,10 +101,7 @@ export default async function AdminPage() {
       .update({ status: "rejected", reviewed_at: new Date().toISOString(), reviewed_by: reviewer.id })
       .eq("id", applicationId);
 
-    await supabase
-      .from("profiles")
-      .update({ tutor_status: "rejected" })
-      .eq("id", app.tutor_id);
+    await supabase.from("profiles").update({ tutor_status: "rejected" }).eq("id", app.tutor_id);
 
     revalidatePath("/admin");
   }
@@ -110,6 +112,7 @@ export default async function AdminPage() {
     const supabase = await createClient();
     const paidUntil = new Date();
     paidUntil.setDate(paidUntil.getDate() + 30);
+
     await supabase.from("enrollments").update({ paid_until: paidUntil.toISOString() }).eq("id", enrollmentId);
 
     const { data: enrollment } = await supabase
@@ -132,8 +135,6 @@ export default async function AdminPage() {
           enrollment_id: enrollmentId,
           amount: 100,
         });
-        // Ignores the error if a credit already exists for this student (unique constraint) —
-        // that's expected on repeat payments, since credit is only earned once.
       }
     }
 
@@ -144,43 +145,41 @@ export default async function AdminPage() {
     "use server";
     const email = formData.get("email")?.toLowerCase().trim();
     const supabase = await createClient();
-
     await supabase.from("profiles").update({ role: "admin" }).eq("email", email);
-
     revalidatePath("/admin");
   }
 
   return (
-    <main style={{ maxWidth: 700, margin: "3rem auto", fontFamily: "sans-serif" }}>
-            <h1>Admin panel</h1>
-            <p><a href="/admin/content">Manage schools, faculties & courses →</a></p>
+    <main className="app-container app-container--wide">
+      <h1>Admin panel</h1>
+      <p><a href="/admin/content">Manage schools, faculties & courses →</a></p>
 
       <h2>Pending Tutor applications</h2>
       {(!applications || applications.length === 0) && <p>Nothing pending.</p>}
 
       {(applications || []).map((app) => (
-        <div key={app.id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", marginBottom: "1rem" }}>
+        <div key={app.id} className="card">
           <p>
             <strong>{app.tutor?.full_name}</strong> ({app.tutor?.email}) applying for{" "}
             <strong>{app.course?.code} — {app.course?.title}</strong>
           </p>
           <p style={{ fontWeight: "bold" }}>{app.sample_title}</p>
-          <p style={{ whiteSpace: "pre-wrap", color: "#333" }}>{app.sample_content}</p>
+          <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(app.sample_content) }} />
 
-          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <div className="action-row" style={{ marginTop: 10 }}>
             <form action={approveApplication}>
               <input type="hidden" name="applicationId" value={app.id} />
-              <button type="submit">✅ Approve</button>
+              <ActionButton pendingLabel="Approving...">✅ Approve</ActionButton>
             </form>
             <form action={rejectApplication}>
               <input type="hidden" name="applicationId" value={app.id} />
-              <button type="submit">❌ Reject</button>
+              <ActionButton pendingLabel="Rejecting..." className="btn btn-sm btn-danger">❌ Reject</ActionButton>
             </form>
           </div>
         </div>
       ))}
 
-      <hr style={{ margin: "2rem 0" }} />
+      <hr style={{ margin: "2rem 0", border: "none", borderTop: "1px solid var(--rule)" }} />
       <h2>Enrollments</h2>
       {(!enrollments || enrollments.length === 0) && <p>No enrollments yet.</p>}
       {(enrollments || []).map((e) => {
@@ -188,11 +187,11 @@ export default async function AdminPage() {
         const trialActive = now < new Date(e.trial_ends_at);
         const paidActive = e.paid_until && now < new Date(e.paid_until);
         return (
-          <div key={e.id} style={{ border: "1px solid #eee", borderRadius: 6, padding: "0.5rem", marginBottom: "0.5rem" }}>
+          <div key={e.id} className="card">
             <p style={{ margin: 0 }}>
               <strong>{e.student?.full_name}</strong> ({e.student?.email}) — {e.course?.code} {e.course?.title}
             </p>
-            <p style={{ margin: 0, fontSize: 14, color: "#666" }}>
+            <p style={{ margin: "4px 0 10px", fontSize: 14, color: "var(--ink-600)" }}>
               {paidActive
                 ? `Paid until ${new Date(e.paid_until).toLocaleDateString()}`
                 : trialActive
@@ -201,7 +200,7 @@ export default async function AdminPage() {
             </p>
             <form action={markPaid}>
               <input type="hidden" name="enrollmentId" value={e.id} />
-              <MarkPaidButton />
+              <ActionButton pendingLabel="Marking...">Mark paid (+30 days)</ActionButton>
             </form>
           </div>
         );
@@ -209,11 +208,11 @@ export default async function AdminPage() {
 
       {profile.role === "super_admin" && (
         <>
-          <hr style={{ margin: "2rem 0" }} />
+          <hr style={{ margin: "2rem 0", border: "none", borderTop: "1px solid var(--rule)" }} />
           <h2>Promote a user to admin</h2>
-          <form action={promoteToAdmin} style={{ display: "flex", gap: 8 }}>
-            <input name="email" type="email" placeholder="user@email.com" required />
-            <button type="submit">Make admin</button>
+          <form action={promoteToAdmin} className="action-row">
+            <input name="email" type="email" placeholder="user@email.com" required style={{ flex: 1, minWidth: 200 }} />
+            <ActionButton pendingLabel="Promoting...">Make admin</ActionButton>
           </form>
         </>
       )}

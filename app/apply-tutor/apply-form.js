@@ -1,29 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import RichTextEditor from "@/components/rich-text-editor";
+import { sanitizeHtml } from "@/lib/sanitize";
+
+const MIN_LENGTH = 200;
 
 export default function ApplyForm({ courses, tutorId }) {
   const router = useRouter();
   const supabase = createClient();
+  const editorRef = useRef(null);
 
   const [courseId, setCourseId] = useState(courses[0]?.id || "");
   const [sampleTitle, setSampleTitle] = useState("");
-  const [sampleContent, setSampleContent] = useState("");
+  const [charCount, setCharCount] = useState(0);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
+
+    const text = editorRef.current?.getText() || "";
+    if (!sampleTitle.trim() || text.trim().length < MIN_LENGTH) {
+      setError(`Please write at least ${MIN_LENGTH} characters of sample content.`);
+      return;
+    }
+
     setLoading(true);
+
+    const html = sanitizeHtml(editorRef.current?.getHTML() || "");
 
     const { error: insertError } = await supabase.from("tutor_applications").insert({
       tutor_id: tutorId,
       course_id: courseId,
       sample_title: sampleTitle,
-      sample_content: sampleContent,
+      sample_content: html,
     });
 
     if (insertError) {
@@ -68,16 +82,13 @@ export default function ApplyForm({ courses, tutorId }) {
         required
       />
 
-      <textarea
-        placeholder="Write out the sample content, as if teaching this topic to a student... (minimum 200 characters)"
-        value={sampleContent}
-        onChange={(e) => setSampleContent(e.target.value)}
-        rows={10}
-        required
-        minLength={200}
+      <RichTextEditor
+        ref={editorRef}
+        placeholder="Write out the sample content, as if teaching this topic to a student..."
+        onUpdate={(text) => setCharCount(text.length)}
       />
-      <p style={{ fontSize: 13, color: sampleContent.length < 200 ? "#b8860b" : "#2a2" }}>
-        {sampleContent.length} / 200 characters minimum
+      <p style={{ fontSize: 13, color: charCount < MIN_LENGTH ? "#b8860b" : "#2a2", margin: 0 }}>
+        {charCount} / {MIN_LENGTH} characters minimum
       </p>
 
       {error && <p style={{ color: "red" }}>{error}</p>}

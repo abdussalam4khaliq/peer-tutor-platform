@@ -25,7 +25,7 @@ export default async function PaymentInfoPage() {
   if (!profile) redirect("/complete-profile");
 
   return (
-    <main style={{ maxWidth: 500, margin: "3rem auto", fontFamily: "sans-serif" }}>
+    <main className="app-container app-container--narrow">
       <p><a href="/courses">← Back to courses</a></p>
       <h1>Unlock full access</h1>
       <p>Your free trial has ended. To continue, make a transfer to the account below.</p>

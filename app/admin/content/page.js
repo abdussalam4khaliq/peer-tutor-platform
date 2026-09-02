@@ -34,7 +34,7 @@ export default async function AdminContentPage() {
     .order("name");
 
   return (
-    <main style={{ maxWidth: 800, margin: "3rem auto", fontFamily: "sans-serif" }}>
+    <main className="app-container app-container--wide">
       <h1>Manage schools & courses</h1>
       <p><a href="/admin">← Back to admin panel</a></p>
       <ContentManager schools={schools || []} />

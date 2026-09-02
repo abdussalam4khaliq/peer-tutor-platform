@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ApplyForm from "./apply-form";
+import { MAX_TUTOR_COURSES } from "@/lib/config";
 
 export default async function ApplyTutorPage() {
   const supabase = await createClient();
@@ -16,52 +17,66 @@ export default async function ApplyTutorPage() {
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) redirect("/complete-profile");
-
   if (profile.role !== "tutor") redirect("/dashboard");
-  if (profile.tutor_status === "pending" || profile.tutor_status === "approved") {
-    redirect("/dashboard");
+
+  const { data: myCourses } = await supabase
+    .from("courses")
+    .select("id")
+    .eq("tutor_id", user.id);
+
+  if ((myCourses || []).length >= MAX_TUTOR_COURSES) {
+    return (
+      <main className="app-container app-container--narrow">
+        <h1>You&apos;re already at the course limit</h1>
+        <p>You&apos;re teaching the maximum of {MAX_TUTOR_COURSES} courses. Drop one before adopting another.</p>
+        <p><a href="/tutor/courses">← Back to my courses</a></p>
+      </main>
+    );
   }
 
-  const { data: pastApplications } = await supabase
+  const { data: applications } = await supabase
     .from("tutor_applications")
-    .select("status, reviewed_at")
+    .select("status, reviewed_at, created_at")
     .eq("tutor_id", user.id)
     .order("created_at", { ascending: false });
 
-  const attemptCount = pastApplications?.length || 0;
-  const lastApplication = pastApplications?.[0];
+  const all = applications || [];
+  const pending = all.find((a) => a.status === "pending");
+  const rejectedCount = all.filter((a) => a.status === "rejected").length;
+  const mostRecent = all[0];
 
-  if (attemptCount >= 3) {
+  if (pending) {
     return (
-      <main style={{ maxWidth: 600, margin: "3rem auto", fontFamily: "sans-serif" }}>
+      <main className="app-container app-container--narrow">
+        <h1>Application under review</h1>
+        <p>You already have a pending application. Check back soon.</p>
+        <p><a href="/dashboard">← Back to dashboard</a></p>
+      </main>
+    );
+  }
+
+  if (rejectedCount >= 3) {
+    return (
+      <main className="app-container app-container--narrow">
         <h1>Application limit reached</h1>
         <p>
-          You&apos;ve reached the maximum of 3 Tutor applications. Please contact an
-          admin directly if you&apos;d like to be reconsidered.
+          You&apos;ve had 3 applications rejected. Please contact an admin directly if
+          you&apos;d like to be reconsidered.
         </p>
       </main>
     );
   }
 
-  let cooldownUntil = null;
-  if (lastApplication?.status === "rejected" && lastApplication.reviewed_at) {
-    const reviewedAt = new Date(lastApplication.reviewed_at);
-    const cooldownEnd = new Date(reviewedAt.getTime() + 24 * 60 * 60 * 1000);
+  if (mostRecent?.status === "rejected" && mostRecent.reviewed_at) {
+    const cooldownEnd = new Date(new Date(mostRecent.reviewed_at).getTime() + 24 * 60 * 60 * 1000);
     if (new Date() < cooldownEnd) {
-      cooldownUntil = cooldownEnd;
+      return (
+        <main className="app-container app-container--narrow">
+          <h1>Please wait before reapplying</h1>
+          <p>Your last application was rejected. You can submit a new one after {cooldownEnd.toLocaleString()}.</p>
+        </main>
+      );
     }
-  }
-
-  if (cooldownUntil) {
-    return (
-      <main style={{ maxWidth: 600, margin: "3rem auto", fontFamily: "sans-serif" }}>
-        <h1>Please wait before reapplying</h1>
-        <p>
-          Your last application was rejected. You can submit a new one after{" "}
-          {cooldownUntil.toLocaleString()}.
-        </p>
-      </main>
-    );
   }
 
   const { data: courses } = await supabase
@@ -73,21 +88,19 @@ export default async function ApplyTutorPage() {
   const available = courses || [];
 
   return (
-    <main style={{ maxWidth: 600, margin: "3rem auto", fontFamily: "sans-serif" }}>
-      <h1>Apply to become a Tutor</h1>
+    <main className="app-container">
+      <h1>Apply to teach a course</h1>
       <p>
-        Pick an unclaimed course from your school, then write a sample of the
+        Pick an unclaimed course from your department, then write a sample of the
         kind of content you&apos;d teach it with. An admin will review it.
       </p>
 
-      {profile.tutor_status === "rejected" && (
-        <p style={{ color: "#b8860b" }}>
-          Your previous application wasn&apos;t approved. You can apply again below.
-        </p>
+      {rejectedCount > 0 && (
+        <p style={{ color: "#b8860b" }}>Your previous application wasn&apos;t approved. You can apply again below.</p>
       )}
 
       {available.length === 0 ? (
-        <p>No unclaimed courses available at your school right now.</p>
+        <p>No unclaimed courses available in your department right now.</p>
       ) : (
         <ApplyForm courses={available} tutorId={user.id} />
       )}

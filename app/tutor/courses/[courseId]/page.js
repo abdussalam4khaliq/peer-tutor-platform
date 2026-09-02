@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import ContentEditor from "./content-editor";
+import TopicManager from "@/components/topic-manager";
 
 export default async function ManageCourseContentPage({ params }) {
   const { courseId } = params;
@@ -20,17 +20,17 @@ export default async function ManageCourseContentPage({ params }) {
   if (!course) notFound();
   if (course.tutor_id !== user.id) redirect("/tutor/courses");
 
-  const { data: sections } = await supabase
-    .from("course_content")
+  const { data: topics } = await supabase
+    .from("topics")
     .select("*")
     .eq("course_id", courseId)
     .order("order_index", { ascending: true });
 
   return (
-    <main style={{ maxWidth: 700, margin: "3rem auto", fontFamily: "sans-serif" }}>
+    <main className="app-container">
       <h1>{course.code} — {course.title}</h1>
       <p><a href="/tutor/courses">← Back to my courses</a></p>
-      <ContentEditor courseId={courseId} initialSections={sections || []} />
+      <TopicManager courseId={course.id} topics={topics || []} />
     </main>
   );
 }

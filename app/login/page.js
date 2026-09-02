@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main style={{ maxWidth: 400, margin: "4rem auto", fontFamily: "sans-serif" }}>
+    <main className="app-container app-container--narrow">
       <h1>Log in</h1>
 
       <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 12 }}>

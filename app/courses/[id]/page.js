@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EnrollButton from "./enroll-button";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 export default async function CourseDetailPage({ params }) {
   const { id } = params;
@@ -45,7 +46,7 @@ export default async function CourseDetailPage({ params }) {
   const sameDepartment = profile.department_id === course.department_id;
 
   return (
-    <main style={{ maxWidth: 700, margin: "3rem auto", fontFamily: "sans-serif" }}>
+    <main className="app-container">
       <p><a href="/courses">← Back to courses</a></p>
       <h1>{course.code} — {course.title}</h1>
       <p style={{ color: "#666" }}>Taught by {course.tutor?.full_name || "a Tutor"}</p>
@@ -72,9 +73,9 @@ export default async function CourseDetailPage({ params }) {
       {(topics || []).length === 0 && <p>No content added yet.</p>}
 
       {(topics || []).map((topic) => (
-        <div key={topic.id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", marginBottom: "0.75rem" }}>
+        <div key={topic.id} className="card">
           <strong>{topic.title}</strong>
-          <p style={{ whiteSpace: "pre-wrap", color: "#333" }}>{topic.content}</p>
+          <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
         </div>
       ))}
 

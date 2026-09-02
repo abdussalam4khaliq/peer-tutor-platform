@@ -46,14 +46,14 @@ export default async function CoursesPage() {
   }
 
   return (
-    <main style={{ maxWidth: 700, margin: "3rem auto", fontFamily: "sans-serif" }}>
+    <main className="app-container">
       <h1>Courses in your department</h1>
 
       {(!courses || courses.length === 0) && <p>No courses added for your department yet.</p>}
 
       <ul style={{ listStyle: "none", padding: 0 }}>
         {(courses || []).map((c) => (
-          <li key={c.id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", marginBottom: "0.75rem" }}>
+          <li className="card">
             <strong>{c.code} — {c.title}</strong>
             <div style={{ fontSize: 14, color: "#666" }}>
               {c.status === "active" ? `Taught by ${c.tutor?.full_name || "a Tutor"}` : "Not yet adopted by a Tutor"}
