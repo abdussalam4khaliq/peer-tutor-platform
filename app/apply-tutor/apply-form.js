@@ -69,12 +69,16 @@ export default function ApplyForm({ courses, tutorId }) {
       />
 
       <textarea
-        placeholder="Write out the sample content, as if teaching this topic to a student..."
+        placeholder="Write out the sample content, as if teaching this topic to a student... (minimum 200 characters)"
         value={sampleContent}
         onChange={(e) => setSampleContent(e.target.value)}
         rows={10}
         required
+        minLength={200}
       />
+      <p style={{ fontSize: 13, color: sampleContent.length < 200 ? "#b8860b" : "#2a2" }}>
+        {sampleContent.length} / 200 characters minimum
+      </p>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
