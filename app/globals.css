@@ -118,9 +118,51 @@ button {
   font-weight: 500;
 }
 
+.nav__toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 6px;
+}
+
+.nav__drawer {
+  display: none;
+}
+
 @media (max-width: 720px) {
-  .nav__links {
+  .nav__row {
+    flex-wrap: wrap;
+  }
+
+  .nav__links--desktop,
+  .nav__cta--desktop {
     display: none;
+  }
+
+  .nav__toggle {
+    display: inline-flex;
+  }
+
+  .nav__drawer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    padding: 18px 0 4px;
+    border-top: 1px solid var(--rule);
+    margin-top: 16px;
+  }
+
+  .nav__drawer a:not(.nav__cta) {
+    text-decoration: none;
+    color: var(--ink-600);
+    font-size: 15px;
+  }
+
+  .nav__drawer .nav__cta {
+    text-align: center;
   }
 }
 

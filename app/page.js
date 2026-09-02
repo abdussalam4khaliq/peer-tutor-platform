@@ -1,4 +1,5 @@
 import AudienceToggle from "@/components/audience-toggle";
+import NavMenu from "@/components/nav-menu";
 
 export default function Home() {
   return (
@@ -12,12 +13,7 @@ export default function Home() {
             </svg>
             Coursemate
           </a>
-          <nav className="nav__links">
-            <a href="#how-it-works">How it works</a>
-            <a href="#why">Why Coursemate</a>
-            <a href="/login">Log in</a>
-          </nav>
-          <a className="nav__cta" href="/signup">Sign up</a>
+          <NavMenu />
         </div>
       </header>
 

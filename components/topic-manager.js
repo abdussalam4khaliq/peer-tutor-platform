@@ -94,6 +94,7 @@ export default function TopicManager({ courseId, topics }) {
       {topics.map((topic, index) => (
         <TopicItem
           key={topic.id}
+          courseId={courseId}
           topic={topic}
           isFirst={index === 0}
           isLast={index === topics.length - 1}
@@ -108,7 +109,7 @@ export default function TopicManager({ courseId, topics }) {
   );
 }
 
-function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelete, onSaved }) {
+function TopicItem({ courseId, topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelete, onSaved }) {
   const supabase = createClient();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(topic.title);
@@ -156,6 +157,9 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
           <div className="action-row">
             <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditing(true)} disabled={busy}>Edit</button>
+            <a className="btn btn-outline btn-sm" href={`/tutor/courses/${courseId}/topics/${topic.id}/questions`}>
+              Manage test ({topic.questions_per_test} questions)
+            </a>
             <button type="button" className="btn btn-danger btn-sm" onClick={onDelete} disabled={busy}>
               {busy ? "Deleting..." : "Delete"}
             </button>

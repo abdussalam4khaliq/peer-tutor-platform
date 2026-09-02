@@ -36,9 +36,22 @@ export default async function CourseDetailPage({ params }) {
 
   const { data: topics } = await supabase
     .from("topics")
-    .select("*")
+    .select("id, title, content, order_index, questions_per_test, question_count")
     .eq("course_id", id)
     .order("order_index", { ascending: true });
+
+  const topicList = topics || [];
+  const topicIds = topicList.map((t) => t.id);
+
+  const { data: attempts } = topicIds.length
+    ? await supabase
+        .from("test_attempts")
+        .select("topic_id, passed")
+        .eq("student_id", user.id)
+        .in("topic_id", topicIds)
+    : { data: [] };
+
+  const passedSet = new Set((attempts || []).filter((a) => a.passed).map((a) => a.topic_id));
 
   const now = new Date();
   const onTrial = enrollment && now < new Date(enrollment.trial_ends_at);
@@ -55,6 +68,8 @@ export default async function CourseDetailPage({ params }) {
 
       {!enrollment && sameDepartment && <p><EnrollButton courseId={course.id} /></p>}
 
+      {(onTrial || isPaid) && <p><a href={`/courses/${course.id}/forum`}>Go to course forum →</a></p>}
+
       {onTrial && (
         <p><span className="badge badge-green">Free trial until {new Date(enrollment.trial_ends_at).toLocaleDateString()}</span></p>
       )}
@@ -68,16 +83,47 @@ export default async function CourseDetailPage({ params }) {
         </p>
       )}
 
-      {(topics || []).length === 0 && <p>No content added yet.</p>}
+      {topicList.length === 0 && <p>No content added yet.</p>}
 
-      {(topics || []).map((topic) => (
-        <div key={topic.id} className="card">
-          <strong>{topic.title}</strong>
-          <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
-        </div>
-      ))}
+      {topicList.map((topic, index) => {
+        const hasQuestions = topic.question_count > 0;
+        const passed = passedSet.has(topic.id);
+        const prevTopic = index > 0 ? topicList[index - 1] : null;
+        const prevHasQuestions = prevTopic ? prevTopic.question_count > 0 : false;
+        const prevPassed = prevTopic ? passedSet.has(prevTopic.id) : true;
+        const locked = index > 0 && prevHasQuestions && !prevPassed;
 
-      {!entitled && (topics || []).length > 0 && (
+        if (locked) {
+          return (
+            <div key={topic.id} className="card">
+              <strong>🔒 {topic.title}</strong>
+              <p style={{ color: "var(--ink-600)", margin: "6px 0 0" }}>
+                Pass &quot;{prevTopic.title}&quot;&apos;s test to unlock this topic.
+              </p>
+            </div>
+          );
+        }
+
+        return (
+          <div key={topic.id} className="card">
+            <strong>{topic.title}</strong>
+            <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
+            {hasQuestions && (
+              <div className="action-row" style={{ marginTop: 8 }}>
+                {passed ? (
+                  <span className="badge badge-green">Test passed ✓</span>
+                ) : (
+                  <a className="btn btn-sm" href={`/courses/${course.id}/topics/${topic.id}/test`}>
+                    Take the test ({topic.questions_per_test} questions, need 80%)
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {!entitled && topicList.length > 0 && (
         <p style={{ color: "var(--ink-600)" }}>
           This is a free preview. Start your free trial above to unlock the rest of this course.
         </p>
