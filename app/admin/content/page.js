@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ContentManager from "./content-manager";
+import AppHeader from "@/components/app-header";
 
 export default async function AdminContentPage() {
   const supabase = await createClient();
@@ -35,6 +36,7 @@ export default async function AdminContentPage() {
 
   return (
     <main className="app-container app-container--wide">
+      <AppHeader profile={profile} />
       <h1>Manage schools & courses</h1>
       <p><a href="/admin">← Back to admin panel</a></p>
       <ContentManager schools={schools || []} />

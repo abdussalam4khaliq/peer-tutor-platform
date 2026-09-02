@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MAX_TUTOR_COURSES } from "@/lib/config";
 import { sanitizeHtml } from "@/lib/sanitize";
 import ActionButton from "@/components/action-button";
+import AppHeader from "@/components/app-header";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -151,6 +152,7 @@ export default async function AdminPage() {
 
   return (
     <main className="app-container app-container--wide">
+      <AppHeader profile={profile} />
       <h1>Admin panel</h1>
       <p><a href="/admin/content">Manage schools, faculties & courses →</a></p>
 

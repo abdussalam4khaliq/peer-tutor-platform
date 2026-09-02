@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EnrollButton from "./enroll-button";
 import { sanitizeHtml } from "@/lib/sanitize";
+import AppHeader from "@/components/app-header";
 
 export default async function CourseDetailPage({ params }) {
   const { id } = params;
@@ -47,26 +48,23 @@ export default async function CourseDetailPage({ params }) {
 
   return (
     <main className="app-container">
+      <AppHeader profile={profile} />
       <p><a href="/courses">← Back to courses</a></p>
       <h1>{course.code} — {course.title}</h1>
-      <p style={{ color: "#666" }}>Taught by {course.tutor?.full_name || "a Tutor"}</p>
+      <p style={{ color: "var(--ink-600)" }}>Taught by {course.tutor?.full_name || "a Tutor"}</p>
 
-      {!enrollment && sameDepartment && (
-        <p><EnrollButton courseId={course.id} /></p>
-      )}
+      {!enrollment && sameDepartment && <p><EnrollButton courseId={course.id} /></p>}
+
       {onTrial && (
-        <p style={{ color: "green" }}>
-          ✅ Free trial active until {new Date(enrollment.trial_ends_at).toLocaleDateString()}
-        </p>
+        <p><span className="badge badge-green">Free trial until {new Date(enrollment.trial_ends_at).toLocaleDateString()}</span></p>
       )}
       {isPaid && (
-        <p style={{ color: "green" }}>
-          ✅ Full access until {new Date(enrollment.paid_until).toLocaleDateString()}
-        </p>
+        <p><span className="badge badge-green">Full access until {new Date(enrollment.paid_until).toLocaleDateString()}</span></p>
       )}
       {enrollment && !entitled && (
-        <p style={{ color: "#b8860b" }}>
-          Your free trial has ended. <a href="/payment-info">See how to unlock full access →</a>
+        <p>
+          <span className="badge badge-amber">Trial ended</span>{" "}
+          <a href="/payment-info">See how to unlock full access →</a>
         </p>
       )}
 
@@ -80,7 +78,7 @@ export default async function CourseDetailPage({ params }) {
       ))}
 
       {!entitled && (topics || []).length > 0 && (
-        <p style={{ color: "#666" }}>
+        <p style={{ color: "var(--ink-600)" }}>
           This is a free preview. Start your free trial above to unlock the rest of this course.
         </p>
       )}

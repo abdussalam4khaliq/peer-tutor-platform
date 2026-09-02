@@ -717,3 +717,130 @@ label {
   font-size: 14px;
   color: var(--ink-600);
 }
+
+/* ---------- app header (authenticated pages) ---------- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--rule);
+  flex-wrap: wrap;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--ink-900);
+}
+
+.app-header__links {
+  display: flex;
+  gap: 18px;
+  font-size: 14px;
+  flex: 1;
+}
+
+.app-header__links a {
+  text-decoration: none;
+  color: var(--ink-600);
+}
+
+.app-header__links a:hover {
+  color: var(--ink-900);
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .app-header__links {
+    order: 3;
+    width: 100%;
+  }
+}
+
+/* ---------- app typography + components ---------- */
+
+.app-container h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 28px;
+  margin: 0 0 8px;
+  line-height: 1.15;
+}
+
+.app-container h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 19px;
+  margin: 30px 0 12px;
+}
+
+.app-container h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 15.5px;
+  margin: 0 0 8px;
+}
+
+.app-container p.lede-sm {
+  color: var(--ink-600);
+  font-size: 15px;
+  margin: 0 0 24px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge-green {
+  background: var(--moss-light);
+  color: var(--moss);
+}
+
+.badge-amber {
+  background: #fff3d6;
+  color: #8a6512;
+}
+
+.badge-grey {
+  background: var(--paper);
+  color: var(--ink-600);
+  border: 1px solid var(--rule);
+}
+
+.field-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 14.5px;
+}
+
+.field-row:last-child {
+  border-bottom: none;
+}
+
+.field-row__label {
+  color: var(--ink-600);
+}
+
+.field-row__value {
+  font-weight: 500;
+}

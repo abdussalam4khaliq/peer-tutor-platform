@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ApplyForm from "./apply-form";
 import { MAX_TUTOR_COURSES } from "@/lib/config";
+import AppHeader from "@/components/app-header";
 
 export default async function ApplyTutorPage() {
   const supabase = await createClient();
@@ -27,6 +28,7 @@ export default async function ApplyTutorPage() {
   if ((myCourses || []).length >= MAX_TUTOR_COURSES) {
     return (
       <main className="app-container app-container--narrow">
+        <AppHeader profile={profile} />
         <h1>You&apos;re already at the course limit</h1>
         <p>You&apos;re teaching the maximum of {MAX_TUTOR_COURSES} courses. Drop one before adopting another.</p>
         <p><a href="/tutor/courses">← Back to my courses</a></p>
@@ -48,6 +50,7 @@ export default async function ApplyTutorPage() {
   if (pending) {
     return (
       <main className="app-container app-container--narrow">
+        <AppHeader profile={profile} />
         <h1>Application under review</h1>
         <p>You already have a pending application. Check back soon.</p>
         <p><a href="/dashboard">← Back to dashboard</a></p>
@@ -58,11 +61,9 @@ export default async function ApplyTutorPage() {
   if (rejectedCount >= 3) {
     return (
       <main className="app-container app-container--narrow">
+        <AppHeader profile={profile} />
         <h1>Application limit reached</h1>
-        <p>
-          You&apos;ve had 3 applications rejected. Please contact an admin directly if
-          you&apos;d like to be reconsidered.
-        </p>
+        <p>You&apos;ve had 3 applications rejected. Please contact an admin directly if you&apos;d like to be reconsidered.</p>
       </main>
     );
   }
@@ -72,6 +73,7 @@ export default async function ApplyTutorPage() {
     if (new Date() < cooldownEnd) {
       return (
         <main className="app-container app-container--narrow">
+          <AppHeader profile={profile} />
           <h1>Please wait before reapplying</h1>
           <p>Your last application was rejected. You can submit a new one after {cooldownEnd.toLocaleString()}.</p>
         </main>
@@ -89,15 +91,13 @@ export default async function ApplyTutorPage() {
 
   return (
     <main className="app-container">
+      <AppHeader profile={profile} />
       <h1>Apply to teach a course</h1>
-      <p>
-        Pick an unclaimed course from your department, then write a sample of the
-        kind of content you&apos;d teach it with. An admin will review it.
+      <p className="lede-sm">
+        Pick an unclaimed course from your department, then write a sample of the kind of content you&apos;d teach it with. An admin will review it.
       </p>
 
-      {rejectedCount > 0 && (
-        <p style={{ color: "#b8860b" }}>Your previous application wasn&apos;t approved. You can apply again below.</p>
-      )}
+      {rejectedCount > 0 && <p><span className="badge badge-amber">Previous application not approved</span></p>}
 
       {available.length === 0 ? (
         <p>No unclaimed courses available in your department right now.</p>

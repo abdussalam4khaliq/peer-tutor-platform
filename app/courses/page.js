@@ -1,5 +1,12 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import AppHeader from "@/components/app-header";
+
+function AccessBadge({ label }) {
+  if (label === "Trial ended — preview only") return <span className="badge badge-amber">{label}</span>;
+  if (label === "Not enrolled — free preview only") return <span className="badge badge-grey">{label}</span>;
+  return <span className="badge badge-green">{label}</span>;
+}
 
 export default async function CoursesPage() {
   const supabase = await createClient();
@@ -18,7 +25,8 @@ export default async function CoursesPage() {
 
   if (!profile.department_id) {
     return (
-      <main style={{ maxWidth: 700, margin: "3rem auto", fontFamily: "sans-serif" }}>
+      <main className="app-container">
+        <AppHeader profile={profile} />
         <p>Your account doesn&apos;t have a department set. Please contact an admin.</p>
       </main>
     );
@@ -47,20 +55,22 @@ export default async function CoursesPage() {
 
   return (
     <main className="app-container">
+      <AppHeader profile={profile} />
       <h1>Courses in your department</h1>
 
       {(!courses || courses.length === 0) && <p>No courses added for your department yet.</p>}
 
       <ul style={{ listStyle: "none", padding: 0 }}>
         {(courses || []).map((c) => (
-          <li className="card">
+          <li key={c.id} className="card">
             <strong>{c.code} — {c.title}</strong>
-            <div style={{ fontSize: 14, color: "#666" }}>
+            <div style={{ fontSize: 14, color: "var(--ink-600)", margin: "4px 0 10px" }}>
               {c.status === "active" ? `Taught by ${c.tutor?.full_name || "a Tutor"}` : "Not yet adopted by a Tutor"}
             </div>
             {c.status === "active" && (
-              <div style={{ marginTop: 6 }}>
-                <span>{accessLabel(c.id)}</span> <a href={`/courses/${c.id}`}>Open course →</a>
+              <div className="action-row" style={{ alignItems: "center" }}>
+                <AccessBadge label={accessLabel(c.id)} />
+                <a href={`/courses/${c.id}`}>Open course →</a>
               </div>
             )}
           </li>

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import AppHeader from "@/components/app-header";
 
 // 👇 Edit these with your real account details
 const PAYMENT_DETAILS = {
@@ -26,6 +27,7 @@ export default async function PaymentInfoPage() {
 
   return (
     <main className="app-container app-container--narrow">
+      <AppHeader profile={profile} />
       <p><a href="/courses">← Back to courses</a></p>
       <h1>Unlock full access</h1>
       <p>Your free trial has ended. To continue, make a transfer to the account below.</p>

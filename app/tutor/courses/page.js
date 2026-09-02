@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MAX_TUTOR_COURSES } from "@/lib/config";
+import AppHeader from "@/components/app-header";
 
 export default async function TutorCoursesPage() {
   const supabase = await createClient();
@@ -28,14 +29,14 @@ export default async function TutorCoursesPage() {
 
   return (
     <main className="app-container">
+      <AppHeader profile={profile} />
       <h1>My courses</h1>
-      <p><a href="/dashboard">← Back to dashboard</a></p>
 
       {myCourses.length === 0 && <p>You don&apos;t have any adopted courses yet.</p>}
 
       <ul style={{ listStyle: "none", padding: 0 }}>
         {myCourses.map((c) => (
-          <li className="card">
+          <li key={c.id} className="card">
             <strong>{c.code} — {c.title}</strong>
             <div style={{ marginTop: 6 }}>
               <a href={`/tutor/courses/${c.id}`}>Manage content →</a>
@@ -44,12 +45,10 @@ export default async function TutorCoursesPage() {
         ))}
       </ul>
 
-      <p style={{ color: "#666", fontSize: 14 }}>
-        {myCourses.length} / {MAX_TUTOR_COURSES} courses
-      </p>
+      <p style={{ color: "var(--ink-600)", fontSize: 14 }}>{myCourses.length} / {MAX_TUTOR_COURSES} courses</p>
 
       {atCap ? (
-        <p style={{ color: "#b8860b" }}>You&apos;re teaching the maximum of {MAX_TUTOR_COURSES} courses.</p>
+        <p><span className="badge badge-amber">Teaching the maximum of {MAX_TUTOR_COURSES} courses</span></p>
       ) : (
         <p><a href="/apply-tutor">Apply to teach another course →</a></p>
       )}
