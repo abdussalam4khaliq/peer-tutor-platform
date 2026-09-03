@@ -80,9 +80,19 @@ export default function TestRunner({ topicId, courseId }) {
     return (
       <div className="card">
         <h2 style={{ marginTop: 0 }}>{result.passed ? "You passed! 🎉" : "Not quite — try again"}</h2>
-        <p style={{ fontSize: 24, fontWeight: 600 }}>{result.score_percent}%</p>
-        <p style={{ color: "var(--ink-600)" }}>You need 80% to pass.</p>
-        <div className="action-row">
+        <p style={{ fontSize: 24, fontWeight: 600, margin: "0 0 4px" }}>{result.score_percent}%</p>
+        <p style={{ color: "var(--ink-600)", margin: "0 0 12px" }}>You need 80% to pass.</p>
+
+        <div className="field-row">
+          <span className="field-row__label">EXP earned</span>
+          <span className="field-row__value">+{result.earned_exp}{result.reduced && " (reduced — already passed before)"}</span>
+        </div>
+        <div className="field-row">
+          <span className="field-row__label">Current streak</span>
+          <span className="field-row__value">🔥 {result.current_streak} day{result.current_streak === 1 ? "" : "s"}</span>
+        </div>
+
+        <div className="action-row" style={{ marginTop: 14 }}>
           {result.passed ? (
             <a className="btn btn-sm" href={`/courses/${courseId}`}>Continue to next topic →</a>
           ) : (

@@ -123,7 +123,7 @@ export default function QuestionBankManager({ topicId, questionsPerTest, questio
       {questions.length === 0 && <p>No questions yet.</p>}
       {questions.map((q) => (
         <div key={q.id} className="card">
-          <p style={{ fontWeight: 600, margin: "0 0 6px" }}>{q.question_text}</p>
+                    <p style={{ fontWeight: 600, margin: "0 0 6px" }}>{q.question_text} <span className="badge badge-grey">{q.exp_value} EXP</span></p>
           {["a", "b", "c", "d"].map((key) => (
             <p key={key} style={{ margin: "2px 0", fontSize: 14, color: q.correct_option === key ? "var(--moss)" : "var(--ink-600)" }}>
               {key.toUpperCase()}. {q[`option_${key}`]} {q.correct_option === key && "✓"}

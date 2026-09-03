@@ -39,6 +39,7 @@ export default async function ManageCourseContentPage({ params }) {
       <AppHeader profile={profile} />
       <p><a href="/tutor/courses">← Back to my courses</a></p>
       <h1>{course.code} — {course.title}</h1>
+      <p><a href={`/courses/${course.id}/forum`}>Go to course forum →</a></p>
       <TopicManager courseId={course.id} topics={topics || []} />
     </main>
   );
