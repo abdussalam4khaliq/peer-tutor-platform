@@ -44,7 +44,7 @@ export default function LeaderboardTabs({ departmentId, facultyId, schoolId }) {
 
   return (
     <div>
-      <div className="toggle" style={{ marginBottom: 20 }}>
+            <div className="toggle" style={{ marginBottom: 20, flexWrap: "wrap" }}>
         {scopes.map((s) => (
           <button
             key={s.key}
