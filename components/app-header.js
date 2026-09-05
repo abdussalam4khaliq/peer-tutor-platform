@@ -15,6 +15,8 @@ export default function AppHeader({ profile }) {
         <a href="/leaderboards">Leaderboards</a>
         <a href="/leagues">Leagues</a>
         {profile?.role === "tutor" && <a href="/tutor/courses">My courses</a>}
+        {profile?.role === "tutor" && <a href="/tutor/leaderboards">My leaderboard</a>}
+        {profile?.role === "tutor" && <a href="/tutor/leagues">My leagues</a>}
         {(profile?.role === "admin" || profile?.role === "super_admin") && <a href="/admin">Admin</a>}
       </nav>
       <SignOutButton />

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import EnrollButton from "./enroll-button";
 import { sanitizeHtml } from "@/lib/sanitize";
 import AppHeader from "@/components/app-header";
+import RatingWidget from "@/components/rating-widget";
 
 export default async function CourseDetailPage({ params }) {
   const { id } = params;
@@ -36,9 +37,20 @@ export default async function CourseDetailPage({ params }) {
 
   const { data: topics } = await supabase
     .from("topics")
-    .select("id, title, content, order_index, questions_per_test, question_count")
+    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count")
     .eq("course_id", id)
     .order("order_index", { ascending: true });
+
+  const topicIdsForRating = (topics || []).map((t) => t.id);
+  const { data: myTopicRatings } = topicIdsForRating.length
+    ? await supabase
+        .from("forum_ratings")
+        .select("target_id, stars")
+        .eq("rater_id", user.id)
+        .eq("target_type", "topic")
+        .in("target_id", topicIdsForRating)
+    : { data: [] };
+  const myTopicRatingMap = new Map((myTopicRatings || []).map((r) => [r.target_id, r.stars]));
 
   const topicList = topics || [];
   const topicIds = topicList.map((t) => t.id);
@@ -119,6 +131,14 @@ export default async function CourseDetailPage({ params }) {
                 )}
               </div>
             )}
+            <RatingWidget
+              targetType="topic"
+              targetId={topic.id}
+              avgRating={topic.avg_rating}
+              ratingCount={topic.rating_count}
+              myRating={myTopicRatingMap.get(topic.id)}
+              disabled={course.tutor_id === user.id}
+            />
           </div>
         );
       })}

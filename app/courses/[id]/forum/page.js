@@ -57,7 +57,7 @@ export default async function ForumPage({ params }) {
 
   const { data: questions } = await supabase
     .from("forum_questions")
-    .select("id, title, created_at, author:profiles(full_name), forum_replies(count)")
+    .select("id, title, created_at, avg_rating, rating_count, author:profiles(full_name), forum_replies(count)")
     .eq("course_id", id)
     .order("created_at", { ascending: false });
 
@@ -79,6 +79,7 @@ export default async function ForumPage({ params }) {
             <p style={{ fontSize: 14, color: "var(--ink-600)", margin: "4px 0 0" }}>
               Asked by {q.author?.full_name || "a student"} · {q.forum_replies?.[0]?.count || 0} repl
               {(q.forum_replies?.[0]?.count || 0) === 1 ? "y" : "ies"}
+              {q.rating_count > 0 && ` · ${q.avg_rating.toFixed(1)}★`}
             </p>
           </div>
         </a>

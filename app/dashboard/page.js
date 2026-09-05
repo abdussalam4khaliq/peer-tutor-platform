@@ -48,11 +48,14 @@ export default async function DashboardPage() {
     }
   }
 
-  const { data: stats } = await supabase
-    .from("student_stats")
-    .select("*")
-    .eq("student_id", user.id)
-    .maybeSingle();
+  let stats = null;
+  if (profile.role === "student") {
+    const { data } = await supabase.from("student_stats").select("*").eq("student_id", user.id).maybeSingle();
+    stats = data;
+  } else if (profile.role === "tutor") {
+    const { data } = await supabase.from("tutor_stats").select("*").eq("tutor_id", user.id).maybeSingle();
+    stats = data;
+  }
 
   const { data: credits } = await supabase
     .from("referral_credits")
@@ -83,18 +86,22 @@ export default async function DashboardPage() {
         <p><a href="/tutor/courses">Manage my courses →</a></p>
       )}
 
-    <h2>Your progress</h2>
-      <div className="card">
-        <div className="field-row">
-          <span className="field-row__label">Total EXP</span>
-          <span className="field-row__value">{stats?.total_exp || 0}</span>
-        </div>
-        <div className="field-row">
-          <span className="field-row__label">Current streak</span>
-          <span className="field-row__value">🔥 {stats?.current_streak || 0} day{(stats?.current_streak || 0) === 1 ? "" : "s"}</span>
-        </div>
-      </div>
-      <p><a href="/leaderboards">View leaderboards →</a></p>
+        {(profile.role === "student" || profile.role === "tutor") && (
+        <>
+          <h2>Your progress</h2>
+          <div className="card">
+            <div className="field-row">
+              <span className="field-row__label">Total EXP</span>
+              <span className="field-row__value">{stats?.total_exp || 0}</span>
+            </div>
+            <div className="field-row">
+              <span className="field-row__label">Current streak</span>
+              <span className="field-row__value">🔥 {stats?.current_streak || 0} day{(stats?.current_streak || 0) === 1 ? "" : "s"}</span>
+            </div>
+          </div>
+          <p><a href={profile.role === "tutor" ? "/tutor/leaderboards" : "/leaderboards"}>View leaderboards →</a></p>
+        </>
+      )}
 
       <h2>Your referral code</h2>
       <div className="card">
