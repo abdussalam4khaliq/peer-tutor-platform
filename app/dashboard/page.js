@@ -63,6 +63,10 @@ export default async function DashboardPage() {
     .eq("referrer_id", user.id);
   const totalEarned = (credits || []).reduce((sum, c) => sum + Number(c.amount), 0);
 
+  const isAdmin = profile.role === "admin" || profile.role === "super_admin";
+  const isTutor = profile.role === "tutor";
+  const isStudent = profile.role === "student";
+
   return (
     <main className="app-container app-container--narrow">
       <AppHeader profile={profile} />
@@ -79,14 +83,21 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {(profile.role === "admin" || profile.role === "super_admin") && (
-        <p><a href="/admin">Go to admin panel →</a></p>
-      )}
-      {profile.role === "tutor" && (
-        <p><a href="/tutor/courses">Manage my courses →</a></p>
-      )}
+      <div className="action-row" style={{ margin: "16px 0 28px" }}>
+        {isAdmin && <a className="btn btn-outline btn-sm" href="/admin">Admin panel</a>}
+        {(isTutor || isAdmin) && (
+          <a className="btn btn-outline btn-sm" href="/tutor/courses">
+            {isTutor ? "Manage my courses" : "Manage my courses (as tutor)"}
+          </a>
+        )}
+        {isAdmin && <a className="btn btn-outline btn-sm" href="/apply-tutor">Apply to teach a course</a>}
+        {isStudent && <a className="btn btn-outline btn-sm" href="/leaderboards">Leaderboard</a>}
+        {isStudent && <a className="btn btn-outline btn-sm" href="/leagues">Leagues</a>}
+        {isTutor && <a className="btn btn-outline btn-sm" href="/tutor/leaderboards">Leaderboard</a>}
+        {isTutor && <a className="btn btn-outline btn-sm" href="/tutor/leagues">Leagues</a>}
+      </div>
 
-        {(profile.role === "student" || profile.role === "tutor") && (
+      {(isStudent || isTutor) && (
         <>
           <h2>Your progress</h2>
           <div className="card">
@@ -98,8 +109,11 @@ export default async function DashboardPage() {
               <span className="field-row__label">Current streak</span>
               <span className="field-row__value">🔥 {stats?.current_streak || 0} day{(stats?.current_streak || 0) === 1 ? "" : "s"}</span>
             </div>
+            <div className="field-row">
+              <span className="field-row__label">League</span>
+              <span className="field-row__value" style={{ textTransform: "capitalize" }}>{stats?.current_league || "bronze"}</span>
+            </div>
           </div>
-          <p><a href={profile.role === "tutor" ? "/tutor/leaderboards" : "/leaderboards"}>View leaderboards →</a></p>
         </>
       )}
 

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppHeader from "@/components/app-header";
+import AdminCourseFilter from "./admin-course-filter";
 
 function AccessBadge({ label }) {
   if (label === "Trial ended — preview only") return <span className="badge badge-amber">{label}</span>;
@@ -22,6 +23,38 @@ export default async function CoursesPage() {
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) redirect("/complete-profile");
+
+  const isAdmin = profile.role === "admin" || profile.role === "super_admin";
+
+  if (isAdmin) {
+    const { data: courses } = await supabase
+      .from("courses")
+      .select(`
+        id, code, title, status,
+        tutor:profiles(full_name),
+        department:departments(name, faculty:faculties(name, school:schools(name)))
+      `);
+
+    const flat = (courses || []).map((c) => ({
+      id: c.id,
+      code: c.code,
+      title: c.title,
+      status: c.status,
+      tutorName: c.tutor?.full_name || null,
+      departmentName: c.department?.name || "",
+      facultyName: c.department?.faculty?.name || "",
+      schoolName: c.department?.faculty?.school?.name || "",
+    }));
+
+    return (
+      <main className="app-container">
+        <AppHeader profile={profile} />
+        <h1>All courses</h1>
+        <p className="lede-sm">{flat.length} course{flat.length === 1 ? "" : "s"} across the platform.</p>
+        <AdminCourseFilter courses={flat} />
+      </main>
+    );
+  }
 
   if (!profile.department_id) {
     return (

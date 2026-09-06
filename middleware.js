@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+const EXEMPT_PATHS = ["/", "/login", "/signup", "/complete-profile", "/auth/callback", "/suspended"];
+
 export async function middleware(request) {
   let response = NextResponse.next({ request });
 
@@ -25,8 +27,25 @@ export async function middleware(request) {
     }
   );
 
-  // Refreshes the auth session cookie if needed.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const path = request.nextUrl.pathname;
+
+  if (user && !EXEMPT_PATHS.includes(path)) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("status")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile && profile.status !== "active") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/suspended";
+      return NextResponse.redirect(url);
+    }
+  }
 
   return response;
 }

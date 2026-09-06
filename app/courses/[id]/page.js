@@ -65,10 +65,11 @@ export default async function CourseDetailPage({ params }) {
 
   const passedSet = new Set((attempts || []).filter((a) => a.passed).map((a) => a.topic_id));
 
+  const isAdmin = profile.role === "admin" || profile.role === "super_admin";
   const now = new Date();
   const onTrial = enrollment && now < new Date(enrollment.trial_ends_at);
   const isPaid = enrollment?.paid_until && now < new Date(enrollment.paid_until);
-  const entitled = onTrial || isPaid;
+  const entitled = isAdmin || onTrial || isPaid;
   const sameDepartment = profile.department_id === course.department_id;
 
   return (
@@ -78,9 +79,10 @@ export default async function CourseDetailPage({ params }) {
       <h1>{course.code} — {course.title}</h1>
       <p style={{ color: "var(--ink-600)" }}>Taught by {course.tutor?.full_name || "a Tutor"}</p>
 
-      {!enrollment && sameDepartment && <p><EnrollButton courseId={course.id} /></p>}
+      {!isAdmin && !enrollment && sameDepartment && <p><EnrollButton courseId={course.id} /></p>}
+      {isAdmin && <p><span className="badge badge-green">Admin access</span></p>}
 
-      {(onTrial || isPaid) && <p><a href={`/courses/${course.id}/forum`}>Go to course forum →</a></p>}
+      {entitled && <p><a href={`/courses/${course.id}/forum`}>Go to course forum →</a></p>}
 
       {onTrial && (
         <p><span className="badge badge-green">Free trial until {new Date(enrollment.trial_ends_at).toLocaleDateString()}</span></p>

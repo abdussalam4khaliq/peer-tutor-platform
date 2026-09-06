@@ -789,6 +789,8 @@ label {
   gap: 18px;
   font-size: 14px;
   flex: 1;
+  flex-wrap: wrap;
+  row-gap: 6px;
 }
 
 .app-header__links a {
@@ -885,4 +887,44 @@ label {
 
 .field-row__value {
   font-weight: 500;
+}
+
+/* ---------- admin hub ---------- */
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-link-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.admin-link-card:hover {
+  border-color: var(--ink-400);
+}
+
+.admin-link-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 8px;
+}
+
+.admin-link-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-600);
 }

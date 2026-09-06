@@ -13,6 +13,8 @@ export default function AppHeader({ profile }) {
       <nav className="app-header__links">
         <a href="/courses">Courses</a>
         <a href="/leaderboards">Leaderboards</a>
+        <a href="/report">Report a user</a>
+        <a href="/report-bug">Report a bug</a>
         <a href="/leagues">Leagues</a>
         {profile?.role === "tutor" && <a href="/tutor/courses">My courses</a>}
         {profile?.role === "tutor" && <a href="/tutor/leaderboards">My leaderboard</a>}

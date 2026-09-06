@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { MAX_TUTOR_COURSES } from "@/lib/config";
+import { canApplyToTutor, getMaxCoursesForRole } from "@/lib/config";
 import AppHeader from "@/components/app-header";
 
 export default async function TutorCoursesPage() {
@@ -17,7 +17,9 @@ export default async function TutorCoursesPage() {
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) redirect("/complete-profile");
-  if (profile.role !== "tutor") redirect("/dashboard");
+  if (!canApplyToTutor(profile.role)) redirect("/dashboard");
+
+  const maxCourses = getMaxCoursesForRole(profile.role);
 
   const { data: courses } = await supabase
     .from("courses")
@@ -25,7 +27,7 @@ export default async function TutorCoursesPage() {
     .eq("tutor_id", user.id);
 
   const myCourses = courses || [];
-  const atCap = myCourses.length >= MAX_TUTOR_COURSES;
+  const atCap = myCourses.length >= maxCourses;
 
   return (
     <main className="app-container">
@@ -45,10 +47,10 @@ export default async function TutorCoursesPage() {
         ))}
       </ul>
 
-      <p style={{ color: "var(--ink-600)", fontSize: 14 }}>{myCourses.length} / {MAX_TUTOR_COURSES} courses</p>
+      <p style={{ color: "var(--ink-600)", fontSize: 14 }}>{myCourses.length} / {maxCourses} courses</p>
 
       {atCap ? (
-        <p><span className="badge badge-amber">Teaching the maximum of {MAX_TUTOR_COURSES} courses</span></p>
+        <p><span className="badge badge-amber">Teaching the maximum of {maxCourses} courses</span></p>
       ) : (
         <p><a href="/apply-tutor">Apply to teach another course →</a></p>
       )}

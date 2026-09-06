@@ -7,7 +7,7 @@ const PAYMENT_DETAILS = {
   bankName: "Opay",
   accountNumber: "9019812076",
   accountName: "Abdulkhaliq Abdussalam",
-  amount: "₦2,000 / month",
+  amount: "₦1,000 / month",
 };
 
 export default async function PaymentInfoPage() {

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ApplyForm from "./apply-form";
-import { MAX_TUTOR_COURSES } from "@/lib/config";
+import { canApplyToTutor, getMaxCoursesForRole } from "@/lib/config";
 import AppHeader from "@/components/app-header";
 
 export default async function ApplyTutorPage() {
@@ -18,19 +18,21 @@ export default async function ApplyTutorPage() {
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) redirect("/complete-profile");
-  if (profile.role !== "tutor") redirect("/dashboard");
+  if (!canApplyToTutor(profile.role)) redirect("/dashboard");
+
+  const maxCourses = getMaxCoursesForRole(profile.role);
 
   const { data: myCourses } = await supabase
     .from("courses")
     .select("id")
     .eq("tutor_id", user.id);
 
-  if ((myCourses || []).length >= MAX_TUTOR_COURSES) {
+  if ((myCourses || []).length >= maxCourses) {
     return (
       <main className="app-container app-container--narrow">
         <AppHeader profile={profile} />
         <h1>You&apos;re already at the course limit</h1>
-        <p>You&apos;re teaching the maximum of {MAX_TUTOR_COURSES} courses. Drop one before adopting another.</p>
+        <p>You&apos;re teaching the maximum of {maxCourses} courses. Drop one before adopting another.</p>
         <p><a href="/tutor/courses">← Back to my courses</a></p>
       </main>
     );
