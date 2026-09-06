@@ -34,34 +34,7 @@ export default async function AdminEnrollmentsPage() {
     "use server";
     const enrollmentId = formData.get("enrollmentId");
     const supabase = await createClient();
-    const paidUntil = new Date();
-    paidUntil.setDate(paidUntil.getDate() + 30);
-
-    await supabase.from("enrollments").update({ paid_until: paidUntil.toISOString() }).eq("id", enrollmentId);
-
-    const { data: enrollment } = await supabase
-      .from("enrollments")
-      .select("student_id")
-      .eq("id", enrollmentId)
-      .single();
-
-    if (enrollment) {
-      const { data: student } = await supabase
-        .from("profiles")
-        .select("referred_by")
-        .eq("id", enrollment.student_id)
-        .single();
-
-      if (student?.referred_by) {
-        await supabase.from("referral_credits").insert({
-          referrer_id: student.referred_by,
-          referred_student_id: enrollment.student_id,
-          enrollment_id: enrollmentId,
-          amount: 100,
-        });
-      }
-    }
-
+    await supabase.rpc("mark_enrollment_paid", { p_enrollment_id: enrollmentId });
     revalidatePath("/admin/enrollments");
   }
 
@@ -90,7 +63,7 @@ export default async function AdminEnrollmentsPage() {
             </p>
             <form action={markPaid}>
               <input type="hidden" name="enrollmentId" value={e.id} />
-              <ActionButton pendingLabel="Marking...">Mark paid (+30 days)</ActionButton>
+              <ActionButton pendingLabel="Marking...">Mark paid (+30 days) — ₦1000</ActionButton>
             </form>
           </div>
         );

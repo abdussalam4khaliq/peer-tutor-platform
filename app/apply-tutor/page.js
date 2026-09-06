@@ -18,7 +18,13 @@ export default async function ApplyTutorPage() {
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) redirect("/complete-profile");
-  if (!canApplyToTutor(profile.role)) redirect("/dashboard");
+
+  const { data: settings } = await supabase
+    .from("site_settings")
+    .select("allow_admin_tutoring")
+    .single();
+
+  if (!canApplyToTutor(profile.role, settings?.allow_admin_tutoring)) redirect("/dashboard");
 
   const maxCourses = getMaxCoursesForRole(profile.role);
 

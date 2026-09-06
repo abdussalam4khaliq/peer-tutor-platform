@@ -1,6 +1,36 @@
+"use client";
+
+import { useState } from "react";
 import SignOutButton from "@/app/dashboard/sign-out-button";
 
+const LINKS = (profile) => {
+  const links = [
+    { href: "/courses", label: "Courses" },
+    { href: "/profile", label: "Profile" },
+    { href: "/leaderboards", label: "Leaderboards" },
+    { href: "/leagues", label: "Leagues" },
+  ];
+
+  if (profile?.role === "tutor") {
+    links.push(
+      { href: "/tutor/courses", label: "My courses" },
+      { href: "/tutor/leaderboards", label: "My leaderboard" },
+      { href: "/tutor/leagues", label: "My leagues" }
+    );
+  }
+  if (profile?.role === "admin" || profile?.role === "super_admin") {
+    links.push({ href: "/admin", label: "Admin" });
+  }
+
+    links.push({ href: "/wallet", label: "Wallet" }, { href: "/report", label: "Report a user" }, { href: "/report-bug", label: "Report a bug" });
+
+  return links;
+};
+
 export default function AppHeader({ profile }) {
+  const [open, setOpen] = useState(false);
+  const links = LINKS(profile);
+
   return (
     <header className="app-header">
       <a href="/dashboard" className="app-header__brand">
@@ -10,18 +40,43 @@ export default function AppHeader({ profile }) {
         </svg>
         Coursemate
       </a>
-      <nav className="app-header__links">
-        <a href="/courses">Courses</a>
-        <a href="/leaderboards">Leaderboards</a>
-        <a href="/report">Report a user</a>
-        <a href="/report-bug">Report a bug</a>
-        <a href="/leagues">Leagues</a>
-        {profile?.role === "tutor" && <a href="/tutor/courses">My courses</a>}
-        {profile?.role === "tutor" && <a href="/tutor/leaderboards">My leaderboard</a>}
-        {profile?.role === "tutor" && <a href="/tutor/leagues">My leagues</a>}
-        {(profile?.role === "admin" || profile?.role === "super_admin") && <a href="/admin">Admin</a>}
+
+      <nav className="app-header__links app-header__links--desktop">
+        {links.map((l) => (
+          <a key={l.href} href={l.href}>{l.label}</a>
+        ))}
       </nav>
-      <SignOutButton />
+
+      <span className="sign-out-desktop">
+        <SignOutButton />
+      </span>
+
+      <button
+        type="button"
+        className="app-header__toggle"
+        aria-label={open ? "Close menu" : "Open menu"}
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {open ? (
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <path d="M4 4L18 18M18 4L4 18" stroke="#16233D" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <path d="M3 6H19M3 11H19M3 16H19" stroke="#16233D" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        )}
+      </button>
+
+      {open && (
+        <div className="app-header__drawer--open">
+          {links.map((l) => (
+            <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
+          ))}
+          <SignOutButton />
+        </div>
+      )}
     </header>
   );
 }

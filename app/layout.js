@@ -29,6 +29,11 @@ export const metadata = {
     "Coursemate turns real lecture notes from top students into structured, department-specific courses.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">

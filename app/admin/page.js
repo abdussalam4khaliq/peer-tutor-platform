@@ -19,10 +19,11 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  const [{ count: pendingApps }, { count: openReports }, { count: openBugs }] = await Promise.all([
+  const [{ count: pendingApps }, { count: openReports }, { count: openBugs }, { count: pendingWithdrawals }] = await Promise.all([
     supabase.from("tutor_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
     supabase.from("bug_reports").select("id", { count: "exact", head: true }).neq("status", "resolved"),
+    supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
 
   return (
@@ -32,6 +33,13 @@ export default async function AdminPage() {
       <p className="lede-sm">Manage the platform from here.</p>
 
       <div className="admin-grid">
+        <a href="/admin/overview" className="card admin-link-card">
+          <div className="admin-link-card__top">
+            <strong>Site overview & settings</strong>
+          </div>
+          <p>Platform stats, revenue estimates, and site-wide settings.</p>
+        </a>
+
         <a href="/admin/applications" className="card admin-link-card">
           <div className="admin-link-card__top">
             <strong>Tutor applications</strong>
@@ -45,6 +53,14 @@ export default async function AdminPage() {
             <strong>Enrollments & payments</strong>
           </div>
           <p>See who&apos;s on trial or paid, and mark bank transfers as paid.</p>
+        </a>
+
+        <a href="/admin/withdrawals" className="card admin-link-card">
+          <div className="admin-link-card__top">
+            <strong>Withdrawal requests</strong>
+            {pendingWithdrawals > 0 && <span className="badge badge-amber">{pendingWithdrawals} pending</span>}
+          </div>
+          <p>Review and pay out tutor commissions and referral earnings.</p>
         </a>
 
         <a href="/admin/content" className="card admin-link-card">

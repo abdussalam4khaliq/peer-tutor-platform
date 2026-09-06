@@ -2,14 +2,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppHeader from "@/components/app-header";
 
-// 👇 Edit these with your real account details
-const PAYMENT_DETAILS = {
-  bankName: "Opay",
-  accountNumber: "9019812076",
-  accountName: "Abdulkhaliq Abdussalam",
-  amount: "₦1,000 / month",
-};
-
 export default async function PaymentInfoPage() {
   const supabase = await createClient();
 
@@ -25,6 +17,11 @@ export default async function PaymentInfoPage() {
     .maybeSingle();
   if (!profile) redirect("/complete-profile");
 
+  const { data: settings } = await supabase
+    .from("site_settings")
+    .select("payment_bank_name, payment_account_number, payment_account_name, course_price_naira")
+    .single();
+
   return (
     <main className="app-container app-container--narrow">
       <AppHeader profile={profile} />
@@ -32,11 +29,23 @@ export default async function PaymentInfoPage() {
       <h1>Unlock full access</h1>
       <p>Your free trial has ended. To continue, make a transfer to the account below.</p>
 
-      <div style={{ border: "1px solid #ddd", borderRadius: 8, padding: "1rem", margin: "1rem 0" }}>
-        <p><strong>Bank:</strong> {PAYMENT_DETAILS.bankName}</p>
-        <p><strong>Account number:</strong> {PAYMENT_DETAILS.accountNumber}</p>
-        <p><strong>Account name:</strong> {PAYMENT_DETAILS.accountName}</p>
-        <p><strong>Amount:</strong> {PAYMENT_DETAILS.amount}</p>
+      <div className="card">
+        <div className="field-row">
+          <span className="field-row__label">Bank</span>
+          <span className="field-row__value">{settings?.payment_bank_name}</span>
+        </div>
+        <div className="field-row">
+          <span className="field-row__label">Account number</span>
+          <span className="field-row__value">{settings?.payment_account_number}</span>
+        </div>
+        <div className="field-row">
+          <span className="field-row__label">Account name</span>
+          <span className="field-row__value">{settings?.payment_account_name}</span>
+        </div>
+        <div className="field-row">
+          <span className="field-row__label">Amount</span>
+          <span className="field-row__value">₦{settings?.course_price_naira} / month</span>
+        </div>
       </div>
 
       <p>

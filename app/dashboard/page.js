@@ -68,7 +68,7 @@ export default async function DashboardPage() {
   const isStudent = profile.role === "student";
 
   return (
-    <main className="app-container app-container--narrow">
+    <main className="app-container">
       <AppHeader profile={profile} />
       <h1>Welcome, {profile.full_name || user.email}</h1>
 
@@ -95,6 +95,7 @@ export default async function DashboardPage() {
         {isStudent && <a className="btn btn-outline btn-sm" href="/leagues">Leagues</a>}
         {isTutor && <a className="btn btn-outline btn-sm" href="/tutor/leaderboards">Leaderboard</a>}
         {isTutor && <a className="btn btn-outline btn-sm" href="/tutor/leagues">Leagues</a>}
+        <a className="btn btn-outline btn-sm" href="/wallet">Wallet</a>
       </div>
 
       {(isStudent || isTutor) && (
