@@ -69,6 +69,10 @@ export default function LoginPage() {
 
       <button onClick={handleGoogleLogin}>Continue with Google</button>
 
+      <p style={{ fontSize: 14 }}>
+        <a href="/forgot-password">Forgot password?</a>
+      </p>
+
       <p>
         Don&apos;t have an account? <a href="/signup">Sign up</a>
       </p>
