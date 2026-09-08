@@ -55,6 +55,13 @@ export default async function AdminPage() {
           <p>See who&apos;s on trial or paid, and mark bank transfers as paid.</p>
         </a>
 
+        <a href="/admin/tournaments" className="card admin-link-card">
+          <div className="admin-link-card__top">
+            <strong>Tournaments</strong>
+          </div>
+          <p>Create tournaments and track prize distribution for winners.</p>
+        </a>
+
         <a href="/admin/withdrawals" className="card admin-link-card">
           <div className="admin-link-card__top">
             <strong>Withdrawal requests</strong>

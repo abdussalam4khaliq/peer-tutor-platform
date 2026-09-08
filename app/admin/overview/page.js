@@ -87,6 +87,7 @@ export default async function AdminOverviewPage() {
           <p style={{ fontSize: 12, color: "var(--ink-600)" }}>
             Revenue is estimated from payment events × current course price — it doesn&apos;t track historical price changes.
           </p>
+          <p><a href="/admin/ledger">See exact site wallet & full ledger →</a></p>
         </div>
       </div>
 

@@ -44,15 +44,7 @@ export default async function AdminWithdrawalsPage() {
     "use server";
     const id = formData.get("id");
     const supabase = await createClient();
-    const {
-      data: { user: admin },
-    } = await supabase.auth.getUser();
-
-    await supabase
-      .from("withdrawal_requests")
-      .update({ status: "paid", resolved_by: admin.id, resolved_at: new Date().toISOString() })
-      .eq("id", id);
-
+    await supabase.rpc("approve_withdrawal", { p_request_id: id });
     revalidatePath("/admin/withdrawals");
   }
 

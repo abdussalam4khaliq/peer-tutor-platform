@@ -22,7 +22,7 @@ const LINKS = (profile) => {
     links.push({ href: "/admin", label: "Admin" });
   }
 
-    links.push({ href: "/wallet", label: "Wallet" }, { href: "/report", label: "Report a user" }, { href: "/report-bug", label: "Report a bug" });
+    links.push({ href: "/tournaments", label: "Tournaments" }, { href: "/wallet", label: "Wallet" }, { href: "/report", label: "Report a user" }, { href: "/report-bug", label: "Report a bug" });
 
   return links;
 };
