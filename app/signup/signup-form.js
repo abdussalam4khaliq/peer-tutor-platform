@@ -18,6 +18,7 @@ export default function SignupForm() {
   const [pickerValue, setPickerValue] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -25,6 +26,11 @@ export default function SignupForm() {
 
     if (!pickerValue?.departmentId) {
       setError("Please select your school, faculty, and department.");
+      return;
+    }
+
+    if (!agreed) {
+      setError("Please agree to the Terms of Service and Privacy Policy to continue.");
       return;
     }
 
@@ -87,6 +93,19 @@ export default function SignupForm() {
           </select>
         </label>
 
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13 }}>
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            style={{ width: "auto", marginTop: 3 }}
+          />
+          <span>
+            I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> and{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+          </span>
+        </label>
+
         {error && <p style={{ color: "red" }}>{error}</p>}
 
         <button type="submit" disabled={loading}>
@@ -96,7 +115,7 @@ export default function SignupForm() {
 
       <hr style={{ margin: "1.5rem 0" }} />
 
-      <button onClick={handleGoogleSignup}>Continue with Google</button>
+      <button onClick={handleGoogleSignup} disabled={!agreed}>Continue with Google</button>
 
       <p>
         Already have an account? <a href="/login">Log in</a>

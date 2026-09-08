@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const EXEMPT_PATHS = ["/", "/login", "/signup", "/complete-profile", "/auth/callback", "/suspended", "/forgot-password", "/reset-password"];
+const EXEMPT_PATHS = ["/", "/login", "/signup", "/complete-profile", "/auth/callback", "/suspended", "/forgot-password", "/reset-password", "/terms", "/privacy"];
 
 export async function middleware(request) {
   let response = NextResponse.next({ request });

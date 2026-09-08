@@ -160,6 +160,8 @@ export default function Home() {
           <a href="/login">Log in</a>
           <a href="/signup">Sign up</a>
           <a href="#how-it-works">How it works</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
         </div>
         <div>© {new Date().getFullYear()} Coursemate</div>
       </footer>
