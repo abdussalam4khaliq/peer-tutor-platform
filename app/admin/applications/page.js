@@ -79,6 +79,14 @@ export default async function AdminApplicationsPage() {
     await supabase.from("profiles").update({ tutor_status: "approved" }).eq("id", app.tutor_id);
     await supabase.from("courses").update({ tutor_id: app.tutor_id, status: "active" }).eq("id", app.course_id);
 
+    await supabase.rpc("notify", {
+      p_profile_id: app.tutor_id,
+      p_type: "tutor_application",
+      p_title: "Application approved!",
+      p_body: "You're now approved to teach that course.",
+      p_link: "/tutor/courses",
+    });
+
     revalidatePath("/admin/applications");
   }
 
@@ -105,6 +113,14 @@ export default async function AdminApplicationsPage() {
       .eq("id", applicationId);
 
     await supabase.from("profiles").update({ tutor_status: "rejected" }).eq("id", app.tutor_id);
+
+    await supabase.rpc("notify", {
+      p_profile_id: app.tutor_id,
+      p_type: "tutor_application",
+      p_title: "Application not approved",
+      p_body: "You can review and apply again.",
+      p_link: "/apply-tutor",
+    });
 
     revalidatePath("/admin/applications");
   }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import SignOutButton from "@/app/dashboard/sign-out-button";
+import NotificationBell from "@/components/notification-bell";
 
 const LINKS = (profile) => {
   const links = [
@@ -47,7 +48,8 @@ export default function AppHeader({ profile }) {
         ))}
       </nav>
 
-      <span className="sign-out-desktop">
+      <span className="sign-out-desktop" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <NotificationBell />
         <SignOutButton />
       </span>
 
@@ -71,6 +73,7 @@ export default function AppHeader({ profile }) {
 
       {open && (
         <div className="app-header__drawer--open">
+          <a href="/notifications" onClick={() => setOpen(false)}>Notifications</a>
           {links.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
           ))}

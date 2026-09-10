@@ -56,10 +56,26 @@ export default async function AdminWithdrawalsPage() {
       data: { user: admin },
     } = await supabase.auth.getUser();
 
+    const { data: request } = await supabase
+      .from("withdrawal_requests")
+      .select("profile_id, amount")
+      .eq("id", id)
+      .single();
+
     await supabase
       .from("withdrawal_requests")
       .update({ status: "rejected", resolved_by: admin.id, resolved_at: new Date().toISOString() })
       .eq("id", id);
+
+    if (request) {
+      await supabase.rpc("notify", {
+        p_profile_id: request.profile_id,
+        p_type: "withdrawal",
+        p_title: "Withdrawal not approved",
+        p_body: `Your request for ₦${request.amount} was not approved. Contact an admin for details.`,
+        p_link: "/wallet",
+      });
+    }
 
     revalidatePath("/admin/withdrawals");
   }
