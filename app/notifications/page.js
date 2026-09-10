@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppHeader from "@/components/app-header";
 import NotificationsList from "./notifications-list";
+import PushToggle from "@/components/push-toggle";
 
 export default async function NotificationsPage() {
   const supabase = await createClient();
@@ -28,7 +29,10 @@ export default async function NotificationsPage() {
     <main className="app-container">
       <AppHeader profile={profile} />
       <h1>Notifications</h1>
-      <NotificationsList initialNotifications={notifications || []} />
+      <PushToggle />
+      <div style={{ marginTop: 16 }}>
+        <NotificationsList initialNotifications={notifications || []} />
+      </div>
     </main>
   );
 }

@@ -1,0 +1,27 @@
+{
+  "name": "Coursemate",
+  "short_name": "Coursemate",
+  "description": "Learn from the classmate who already aced it.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#EFF0EA",
+  "theme_color": "#16233D",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+
+  "screenshots": [
+      {
+        "src": "/screenshots/desktop.png",
+        "sizes": "1365x768",
+        "type": "image/png",
+        "form_factor": "wide"
+      },
+      {
+        "src": "/screenshots/mobile.jpg",
+        "sizes": "390x844",
+        "type": "image/png"
+      }
+    ]
+}
