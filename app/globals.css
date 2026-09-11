@@ -808,17 +808,6 @@ label {
   color: var(--ink-900);
 }
 
-@media (max-width: 480px) {
-  .app-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .app-header__links {
-    order: 3;
-    width: 100%;
-  }
-}
-
 /* ---------- app typography + components ---------- */
 
 .app-container h1 {
