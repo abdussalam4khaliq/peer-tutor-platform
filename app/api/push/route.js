@@ -1,16 +1,29 @@
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 
-webpush.setVapidDetails(
-  "mailto:support@virtualcoursemate.vercel.app",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
-
 export async function POST(request) {
   const secret = request.headers.get("x-webhook-secret");
   if (secret !== process.env.PUSH_WEBHOOK_SECRET) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+  if (!publicKey || !privateKey) {
+    console.error("VAPID keys missing from environment");
+    return new Response("Server misconfigured", { status: 500 });
+  }
+
+  try {
+    webpush.setVapidDetails(
+      "mailto:support@virtualcoursemate.vercel.app",
+      publicKey,
+      privateKey
+    );
+  } catch (err) {
+    console.error("Invalid VAPID keys:", err.message);
+    return new Response("Server misconfigured", { status: 500 });
   }
 
   const payload = await request.json();
@@ -51,7 +64,6 @@ export async function POST(request) {
           payloadStr
         );
       } catch (err) {
-        // Subscription is dead (expired/unsubscribed) — clean it up.
         if (err.statusCode === 404 || err.statusCode === 410) {
           await supabase.from("push_subscriptions").delete().eq("id", sub.id);
         }
