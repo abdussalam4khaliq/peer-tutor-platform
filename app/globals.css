@@ -992,3 +992,18 @@ label {
     font-size: 15px;
   }
 }
+
+/* ---------- app header: final layout rules (mobile) ---------- */
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  order: 2;
+}
+
+@media (max-width: 720px) {
+  .app-header__signout-desktop {
+    display: none;
+  }
+}
