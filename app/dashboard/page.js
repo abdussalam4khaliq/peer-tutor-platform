@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppHeader from "@/components/app-header";
+import ReferralShare from "@/components/referral-share";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -131,6 +132,7 @@ export default async function DashboardPage() {
           <span className="field-row__value">₦{totalEarned}</span>
         </div>
       </div>
+      <ReferralShare referralCode={profile.referral_code} />
     </main>
   );
 }
