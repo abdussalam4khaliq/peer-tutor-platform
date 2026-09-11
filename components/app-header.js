@@ -23,7 +23,12 @@ const LINKS = (profile) => {
     links.push({ href: "/admin", label: "Admin" });
   }
 
-    links.push({ href: "/tournaments", label: "Tournaments" }, { href: "/wallet", label: "Wallet" }, { href: "/report", label: "Report a user" }, { href: "/report-bug", label: "Report a bug" });
+  links.push(
+    { href: "/tournaments", label: "Tournaments" },
+    { href: "/wallet", label: "Wallet" },
+    { href: "/report", label: "Report a user" },
+    { href: "/report-bug", label: "Report a bug" }
+  );
 
   return links;
 };
@@ -48,10 +53,12 @@ export default function AppHeader({ profile }) {
         ))}
       </nav>
 
-      <span className="app-header__desktop-actions">
+      <div className="app-header__actions">
         <NotificationBell />
-        <SignOutButton />
-      </span>
+        <span className="app-header__signout-desktop">
+          <SignOutButton />
+        </span>
+      </div>
 
       <button
         type="button"

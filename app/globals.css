@@ -937,6 +937,13 @@ label {
 
 /* ---------- app header hamburger (mobile) ---------- */
 
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  order: 2;
+}
+
 .app-header__toggle {
   display: none;
   align-items: center;
@@ -944,7 +951,7 @@ label {
   background: transparent;
   border: none;
   padding: 6px;
-  order: 2;
+  order: 3;
 }
 
 .app-header__drawer {
