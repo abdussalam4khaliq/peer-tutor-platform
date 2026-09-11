@@ -131,6 +131,12 @@ button {
   display: none;
 }
 
+.app-header__desktop-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 @media (max-width: 720px) {
   .nav__row {
     flex-wrap: wrap;
@@ -958,7 +964,7 @@ label {
     display: inline-flex;
   }
 
-  .app-header .sign-out-desktop {
+  .app-header__desktop-actions {
     display: none;
   }
 

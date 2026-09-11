@@ -48,7 +48,7 @@ export default function AppHeader({ profile }) {
         ))}
       </nav>
 
-      <span className="sign-out-desktop" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <span className="app-header__desktop-actions">
         <NotificationBell />
         <SignOutButton />
       </span>
