@@ -19,12 +19,14 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  const [{ count: pendingApps }, { count: openReports }, { count: openBugs }, { count: pendingWithdrawals }] = await Promise.all([
+  const [{ count: pendingApps }, { count: openReports }, { count: openBugs }, { count: pendingWithdrawals }, { data: flaggedTopics }] = await Promise.all([
     supabase.from("tutor_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
     supabase.from("bug_reports").select("id", { count: "exact", head: true }).neq("status", "resolved"),
     supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.rpc("get_flagged_topics"),
   ]);
+  const flaggedCount = (flaggedTopics || []).length;
 
   return (
     <main className="app-container app-container--wide">
@@ -77,6 +79,14 @@ export default async function AdminPage() {
           <p>Add or edit schools, faculties, departments, and courses.</p>
         </a>
 
+        <a href="/admin/content-review" className="card admin-link-card">
+          <div className="admin-link-card__top">
+            <strong>Content review</strong>
+            {flaggedCount > 0 && <span className="badge badge-amber">{flaggedCount} flagged</span>}
+          </div>
+          <p>Topics with consistently low ratings, surfaced automatically.</p>
+        </a>
+        
         <a href="/admin/reports" className="card admin-link-card">
           <div className="admin-link-card__top">
             <strong>Account reports</strong>

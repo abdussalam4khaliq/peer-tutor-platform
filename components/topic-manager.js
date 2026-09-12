@@ -134,7 +134,15 @@ function TopicItem({ courseId, topic, isFirst, isLast, busy, onMoveUp, onMoveDow
         {editing ? (
           <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ flex: 1 }} />
         ) : (
-          <strong>{topic.title}</strong>
+          <span>
+            <strong>{topic.title}</strong>{" "}
+            {topic.rating_count > 0 && (
+              <span className={`badge ${topic.rating_count >= 5 && topic.avg_rating < 2.5 ? "badge-amber" : "badge-grey"}`}>
+                {topic.avg_rating}★ ({topic.rating_count})
+              </span>
+            )}
+            {topic.hidden && <span className="badge badge-grey" style={{ marginLeft: 6 }}>Unpublished</span>}
+          </span>
         )}
         <div className="action-row" style={{ flexShrink: 0 }}>
           <button type="button" className="btn btn-outline btn-sm" onClick={onMoveUp} disabled={isFirst || busy}>↑</button>
