@@ -19,8 +19,8 @@ export default function CompleteProfilePage() {
     e.preventDefault();
     setError(null);
 
-    if (!pickerValue?.departmentId) {
-      setError("Please select your school, faculty, and department.");
+    if (!pickerValue || (pickerValue.mode !== "request" && !pickerValue.departmentId)) {
+      setError("Please select your school, faculty, and department (or request them).");
       return;
     }
 
@@ -42,17 +42,27 @@ export default function CompleteProfilePage() {
     }
 
     const generatedCode = user.id.replace(/-/g, "").slice(0, 8).toUpperCase();
+    const isRequest = pickerValue.mode === "request";
 
     const { error } = await supabase.from("profiles").insert({
       id: user.id,
       full_name: user.user_metadata?.full_name || user.user_metadata?.name || "",
       role,
       school: pickerValue.schoolName,
-      department_id: pickerValue.departmentId,
+      department_id: isRequest ? null : pickerValue.departmentId,
       email: user.email,
       referral_code: generatedCode,
       referred_by: referredBy,
     });
+
+    if (!error && isRequest) {
+      await supabase.from("structure_requests").insert({
+        requester_id: user.id,
+        requested_school: pickerValue.schoolName,
+        requested_faculty: pickerValue.facultyName,
+        requested_department: pickerValue.departmentName,
+      });
+    }
 
     setLoading(false);
 

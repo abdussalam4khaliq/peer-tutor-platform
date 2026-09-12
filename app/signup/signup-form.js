@@ -25,8 +25,8 @@ export default function SignupForm() {
     e.preventDefault();
     setError(null);
 
-    if (!pickerValue?.departmentId) {
-      setError("Please select your school, faculty, and department.");
+    if (!pickerValue || (pickerValue.mode !== "request" && !pickerValue.departmentId)) {
+      setError("Please select your school, faculty, and department (or request them).");
       return;
     }
 
@@ -37,7 +37,9 @@ export default function SignupForm() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const isRequest = pickerValue.mode === "request";
+
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -45,19 +47,28 @@ export default function SignupForm() {
           full_name: fullName,
           role,
           school: pickerValue.schoolName,
-          department_id: pickerValue.departmentId,
+          department_id: isRequest ? "" : pickerValue.departmentId,
           referral_code: referralCode,
         },
       },
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       setError(error.message);
       return;
     }
 
+    if (isRequest && signUpData?.user?.id) {
+      await supabase.from("structure_requests").insert({
+        requester_id: signUpData.user.id,
+        requested_school: pickerValue.schoolName,
+        requested_faculty: pickerValue.facultyName,
+        requested_department: pickerValue.departmentName,
+      });
+    }
+
+    setLoading(false);
     posthog.capture("sign_up", { role, method: "email" });
     router.push("/dashboard");
     router.refresh();

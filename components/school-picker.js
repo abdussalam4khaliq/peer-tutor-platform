@@ -6,12 +6,18 @@ import { createClient } from "@/lib/supabase/client";
 export default function SchoolPicker({ onChange }) {
   const supabase = createClient();
 
+  const [mode, setMode] = useState("select");
+
   const [schools, setSchools] = useState([]);
   const [faculties, setFaculties] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [schoolId, setSchoolId] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
+
+  const [reqSchool, setReqSchool] = useState("");
+  const [reqFaculty, setReqFaculty] = useState("");
+  const [reqDepartment, setReqDepartment] = useState("");
 
   useEffect(() => {
     supabase.from("schools").select("id, name").order("name").then(({ data }) => setSchools(data || []));
@@ -25,12 +31,7 @@ export default function SchoolPicker({ onChange }) {
       setFaculties([]);
       return;
     }
-    supabase
-      .from("faculties")
-      .select("id, name")
-      .eq("school_id", schoolId)
-      .order("name")
-      .then(({ data }) => setFaculties(data || []));
+    supabase.from("faculties").select("id, name").eq("school_id", schoolId).order("name").then(({ data }) => setFaculties(data || []));
   }, [schoolId]);
 
   useEffect(() => {
@@ -39,20 +40,37 @@ export default function SchoolPicker({ onChange }) {
       setDepartments([]);
       return;
     }
-    supabase
-      .from("departments")
-      .select("id, name")
-      .eq("faculty_id", facultyId)
-      .order("name")
-      .then(({ data }) => setDepartments(data || []));
+    supabase.from("departments").select("id, name").eq("faculty_id", facultyId).order("name").then(({ data }) => setDepartments(data || []));
   }, [facultyId]);
 
   useEffect(() => {
-    if (!departmentId) return;
-    const school = schools.find((s) => s.id === schoolId);
-    const department = departments.find((d) => d.id === departmentId);
-    onChange({ departmentId, schoolName: school?.name || "", departmentName: department?.name || "" });
-  }, [departmentId]);
+    if (mode === "select") {
+      if (!departmentId) return;
+      const school = schools.find((s) => s.id === schoolId);
+      const department = departments.find((d) => d.id === departmentId);
+      onChange({ departmentId, schoolName: school?.name || "", departmentName: department?.name || "" });
+    } else {
+      if (!reqSchool.trim() || !reqFaculty.trim() || !reqDepartment.trim()) return;
+      onChange({ mode: "request", schoolName: reqSchool.trim(), facultyName: reqFaculty.trim(), departmentName: reqDepartment.trim() });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, departmentId, reqSchool, reqFaculty, reqDepartment]);
+
+  if (mode === "request") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <input placeholder="Your school's name" value={reqSchool} onChange={(e) => setReqSchool(e.target.value)} required />
+        <input placeholder="Your faculty's name" value={reqFaculty} onChange={(e) => setReqFaculty(e.target.value)} required />
+        <input placeholder="Your department's name" value={reqDepartment} onChange={(e) => setReqDepartment(e.target.value)} required />
+        <p style={{ fontSize: 13, color: "var(--ink-600)", margin: 0 }}>
+          Your account will be pending until an admin sets this up — usually within a day or two.
+        </p>
+        <button type="button" onClick={() => setMode("select")} style={{ fontSize: 13, alignSelf: "flex-start", background: "none", border: "none", color: "var(--moss)", cursor: "pointer", padding: 0 }}>
+          ← Back to picking from the list
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -85,6 +103,10 @@ export default function SchoolPicker({ onChange }) {
           ))}
         </select>
       </label>
+
+      <button type="button" onClick={() => setMode("request")} style={{ fontSize: 13, alignSelf: "flex-start", background: "none", border: "none", color: "var(--moss)", cursor: "pointer", padding: 0, textAlign: "left" }}>
+        Can&apos;t find your school, faculty, or department? Request it →
+      </button>
     </>
   );
 }

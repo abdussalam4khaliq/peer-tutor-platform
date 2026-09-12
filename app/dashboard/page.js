@@ -18,6 +18,36 @@ export default async function DashboardPage() {
     .maybeSingle();
   if (!profile) redirect("/complete-profile");
 
+  if ((profile.role === "student" || profile.role === "tutor") && !profile.department_id) {
+    const { data: pendingRequest } = await supabase
+      .from("structure_requests")
+      .select("*")
+      .eq("requester_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return (
+      <main className="app-container app-container--narrow">
+        <AppHeader profile={profile} />
+        <h1>Welcome, {profile.full_name}</h1>
+        {pendingRequest?.status === "pending" && (
+          <p>
+            We&apos;re setting up <strong>{pendingRequest.requested_school}</strong> ({pendingRequest.requested_faculty} — {pendingRequest.requested_department}) for you.
+            This usually takes a day or two — check back soon.
+          </p>
+        )}
+        {pendingRequest?.status === "rejected" && (
+          <p>
+            Your request wasn&apos;t approved: {pendingRequest.admin_note || "no reason given"}.
+            Please contact an admin.
+          </p>
+        )}
+        {!pendingRequest && <p>Your account doesn&apos;t have a department set yet. Please contact an admin.</p>}
+      </main>
+    );
+  }
+
   if (profile.role === "tutor") {
     const { data: myCourses } = await supabase
       .from("courses")
