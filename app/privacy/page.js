@@ -58,10 +58,13 @@ export default function PrivacyPage() {
           age required in your jurisdiction, please report it to us.
         </p>
 
-        <h2>8. Cookies and sessions</h2>
+        <h2>8. Cookies and analytics</h2>
         <p>
-          We use essential cookies to keep you logged in. We don&apos;t use advertising or third-party
-          tracking cookies.
+          We use essential cookies to keep you logged in. We also use a third-party product analytics
+          service, to understand how the platform is used and how to better cater for your needs. This 
+          is limited to your account role and school for grouping purposes; we don&apos;t send your name 
+          or email to this service, and we don&apos;t record your screen. We don&apos;t use advertising or
+          third-party tracking cookies, and analytics data isn&apos;t used to target ads.
         </p>
 
         <h2>9. Changes to this policy</h2>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { posthog } from "@/lib/posthog";
 
 export default function TestRunner({ topicId, courseId }) {
   const supabase = createClient();
@@ -64,7 +65,15 @@ export default function TestRunner({ topicId, courseId }) {
       return;
     }
 
-    setResult(data?.[0] || null);
+    const outcome = data?.[0];
+    if (outcome) {
+      posthog.capture("test_completed", {
+        topic_id: topicId,
+        passed: outcome.passed,
+        score_percent: outcome.score_percent,
+      });
+    }
+    setResult(outcome || null);
   }
 
   if (loadError) {

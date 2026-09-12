@@ -2,6 +2,7 @@ import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import RegisterServiceWorker from "@/components/register-sw";
 import InstallPrompt from "@/components/install-prompt";
+import AnalyticsProvider from "@/components/analytics-provider";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({ children }) {
       <body className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable}`}>
         <RegisterServiceWorker />
         <InstallPrompt />
+        <AnalyticsProvider />
         {children}
       </body>
     </html>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SchoolPicker from "@/components/school-picker";
+import { posthog } from "@/lib/posthog";
 
 export default function SignupForm() {
   const router = useRouter();
@@ -57,6 +58,7 @@ export default function SignupForm() {
       return;
     }
 
+    posthog.capture("sign_up", { role, method: "email" });
     router.push("/dashboard");
     router.refresh();
   }

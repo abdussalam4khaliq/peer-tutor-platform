@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { posthog } from "@/lib/posthog";
 
 export default function EnrollButton({ courseId }) {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function EnrollButton({ courseId }) {
       return;
     }
 
+    posthog.capture("trial_started", { course_id: courseId });
     router.refresh();
   }
 

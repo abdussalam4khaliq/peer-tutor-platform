@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import RichTextEditor from "@/components/rich-text-editor";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { posthog } from "@/lib/posthog";
 
 const MIN_LENGTH = 200;
 
@@ -58,6 +59,7 @@ export default function ApplyForm({ courses, tutorId }) {
       return;
     }
 
+    posthog.capture("tutor_application_submitted", { course_id: courseId });
     router.push("/dashboard");
     router.refresh();
   }
