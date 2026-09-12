@@ -1,5 +1,6 @@
 import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 import RegisterServiceWorker from "@/components/register-sw";
 import InstallPrompt from "@/components/install-prompt";
 import AnalyticsProvider from "@/components/analytics-provider";
@@ -50,7 +51,9 @@ export default function RootLayout({ children }) {
       <body className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable}`}>
         <RegisterServiceWorker />
         <InstallPrompt />
-        <AnalyticsProvider />
+        <Suspense fallback={null}>
+          <AnalyticsProvider />
+        </Suspense>
         {children}
       </body>
     </html>
