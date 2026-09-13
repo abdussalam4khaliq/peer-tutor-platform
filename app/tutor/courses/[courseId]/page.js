@@ -34,12 +34,45 @@ export default async function ManageCourseContentPage({ params }) {
     .eq("course_id", courseId)
     .order("order_index", { ascending: true });
 
+  const { data: plan } = await supabase
+    .from("course_lesson_plans")
+    .select("*")
+    .eq("course_id", courseId)
+    .maybeSingle();
+
+  const { data: recentCompliance } = plan
+    ? await supabase
+        .from("posting_compliance_log")
+        .select("week_start, week_end, target_count, actual_count, met_quota")
+        .eq("course_id", courseId)
+        .order("week_start", { ascending: false })
+        .limit(4)
+    : { data: [] };
+
   return (
     <main className="app-container">
       <AppHeader profile={profile} />
       <p><a href="/tutor/courses">← Back to my courses</a></p>
       <h1>{course.code} — {course.title}</h1>
-      <p><a href={`/courses/${course.id}/forum`}>Go to course forum →</a></p>
+
+      {plan && (
+        <div className="card">
+          <p style={{ margin: "0 0 6px" }}>
+            <strong>Your posting schedule:</strong>{" "}
+            {plan.posting_days.map((d) => d[0].toUpperCase() + d.slice(1)).join(", ")} ({plan.weekly_quota}/week)
+          </p>
+          {(recentCompliance || []).length > 0 && (
+            <div className="action-row">
+              {recentCompliance.map((c, i) => (
+                <span key={i} className={`badge ${c.met_quota ? "badge-green" : "badge-amber"}`}>
+                  {new Date(c.week_start).toLocaleDateString()}: {c.actual_count}/{c.target_count}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <TopicManager courseId={course.id} topics={topics || []} />
     </main>
   );

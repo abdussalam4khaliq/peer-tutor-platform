@@ -18,8 +18,8 @@ export default async function AdminPage() {
   if (!profile || (profile.role !== "admin" && profile.role !== "super_admin")) {
     redirect("/dashboard");
   }
-
-  const [{ count: pendingApps }, { count: openReports }, { count: openBugs }, { count: pendingWithdrawals }, { data: flaggedTopics }, { count: pendingStructure }, { count: pendingCourseReqs }] = await Promise.all([
+ 
+  const [{ count: pendingApps }, { count: openReports }, { count: openBugs }, { count: pendingWithdrawals }, { data: flaggedTopics }, { count: pendingStructure }, { count: pendingCourseReqs }, { count: missedQuotas }] = await Promise.all([
     supabase.from("tutor_applications").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
     supabase.from("bug_reports").select("id", { count: "exact", head: true }).neq("status", "resolved"),
@@ -27,6 +27,7 @@ export default async function AdminPage() {
     supabase.rpc("get_flagged_topics"),
     supabase.from("structure_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("course_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("posting_compliance_log").select("id", { count: "exact", head: true }).eq("met_quota", false),
   ]);
   const flaggedCount = (flaggedTopics || []).length;
 
@@ -95,6 +96,14 @@ export default async function AdminPage() {
             {pendingCourseReqs > 0 && <span className="badge badge-amber">{pendingCourseReqs} pending</span>}
           </div>
           <p>Courses students or Tutors have asked for.</p>
+        </a>
+
+        <a href="/admin/tutor-compliance" className="card admin-link-card">
+          <div className="admin-link-card__top">
+            <strong>Tutor compliance</strong>
+            {missedQuotas > 0 && <span className="badge badge-amber">{missedQuotas} missed quotas</span>}
+          </div>
+          <p>Weekly posting schedules and quota tracking per tutor.</p>
         </a>
 
         <a href="/admin/content-review" className="card admin-link-card">
