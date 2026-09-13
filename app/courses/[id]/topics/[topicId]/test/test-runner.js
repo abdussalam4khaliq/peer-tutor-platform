@@ -103,7 +103,10 @@ export default function TestRunner({ topicId, courseId }) {
 
         <div className="action-row" style={{ marginTop: 14 }}>
           {result.passed ? (
-            <a className="btn btn-sm" href={`/courses/${courseId}`}>Continue to next topic →</a>
+            <>
+              <a className="btn btn-sm" href={`/courses/${courseId}`}>Continue to next topic →</a>
+              <button type="button" className="btn btn-outline btn-sm" onClick={loadQuestions}>Retake test</button>
+            </>
           ) : (
             <>
               <button type="button" className="btn btn-sm" onClick={loadQuestions}>Try again</button>

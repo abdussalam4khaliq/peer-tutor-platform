@@ -124,10 +124,15 @@ export default async function CourseDetailPage({ params }) {
             <strong>{topic.title}</strong>
             <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
             <VideoEmbed videoId={topic.youtube_video_id} />
-            {hasQuestions && (
-              <div className="action-row" style={{ marginTop: 8 }}>
+              {hasQuestions && (
+              <div className="action-row" style={{ marginTop: 8, alignItems: "center" }}>
                 {passed ? (
-                  <span className="badge badge-green">Test passed ✓</span>
+                  <>
+                    <span className="badge badge-green">Test passed ✓</span>
+                    <a className="btn btn-outline btn-sm" href={`/courses/${course.id}/topics/${topic.id}/test`}>
+                      Retake test
+                    </a>
+                  </>
                 ) : (
                   <a className="btn btn-sm" href={`/courses/${course.id}/topics/${topic.id}/test`}>
                     Take the test ({topic.questions_per_test} questions, need 80%)

@@ -26,7 +26,9 @@ export default async function AdminApplicationsPage() {
   const { data: applications } = await supabase
     .from("tutor_applications")
     .select(`
-      id, sample_title, sample_content, status, created_at,
+      id, sample_title, sample_content, sample_title_2, sample_content_2,
+      scheme_of_work, grade_or_result, completed_session, motivation,
+      status, created_at,
       tutor:profiles!tutor_applications_tutor_id_fkey(full_name, email),
       course:courses(code, title)
     `)
@@ -139,8 +141,28 @@ export default async function AdminApplicationsPage() {
             <strong>{app.tutor?.full_name}</strong> ({app.tutor?.email}) applying for{" "}
             <strong>{app.course?.code} — {app.course?.title}</strong>
           </p>
-          <p style={{ fontWeight: "bold" }}>{app.sample_title}</p>
+            <div className="field-row">
+            <span className="field-row__label">Grade achieved</span>
+            <span className="field-row__value">{app.grade_or_result}</span>
+          </div>
+          <div className="field-row">
+            <span className="field-row__label">Session completed</span>
+            <span className="field-row__value">{app.completed_session}</span>
+          </div>
+
+          <p style={{ fontWeight: 600, marginTop: 12 }}>Why they'd be a good fit</p>
+          <p style={{ fontSize: 14, whiteSpace: "pre-wrap" }}>{app.motivation}</p>
+
+          <p style={{ fontWeight: 600, marginTop: 12 }}>Scheme of work ({(app.scheme_of_work || []).length} topics)</p>
+          <ol style={{ fontSize: 14, paddingLeft: 20, margin: "0 0 12px" }}>
+            {(app.scheme_of_work || []).map((t, i) => <li key={i}>{t}</li>)}
+          </ol>
+
+          <p style={{ fontWeight: "bold" }}>Sample 1: {app.sample_title}</p>
           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(app.sample_content) }} />
+
+          <p style={{ fontWeight: "bold", marginTop: 12 }}>Sample 2: {app.sample_title_2}</p>
+          <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(app.sample_content_2) }} />
 
           {app.tutor?.email === profile.email ? (
             <p style={{ color: "var(--ink-600)", fontSize: 14, marginTop: 10 }}>
