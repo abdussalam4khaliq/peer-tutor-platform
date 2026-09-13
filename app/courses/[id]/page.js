@@ -4,6 +4,7 @@ import EnrollButton from "./enroll-button";
 import { sanitizeHtml } from "@/lib/sanitize";
 import AppHeader from "@/components/app-header";
 import RatingWidget from "@/components/rating-widget";
+import VideoEmbed from "@/components/video-embed";
 
 export default async function CourseDetailPage({ params }) {
   const { id } = params;
@@ -37,7 +38,7 @@ export default async function CourseDetailPage({ params }) {
 
   const { data: topics } = await supabase
     .from("topics")
-    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count")
+    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count, youtube_video_id")
     .eq("course_id", id)
     .order("order_index", { ascending: true });
 
@@ -122,6 +123,7 @@ export default async function CourseDetailPage({ params }) {
           <div key={topic.id} className="card">
             <strong>{topic.title}</strong>
             <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
+            <VideoEmbed videoId={topic.youtube_video_id} />
             {hasQuestions && (
               <div className="action-row" style={{ marginTop: 8 }}>
                 {passed ? (

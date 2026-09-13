@@ -4,13 +4,16 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import RichTextEditor from "@/components/rich-text-editor";
+import VideoEmbed from "@/components/video-embed";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { extractYouTubeId } from "@/lib/youtube";
 
 export default function TopicManager({ courseId, topics }) {
   const router = useRouter();
   const supabase = createClient();
 
   const [newTitle, setNewTitle] = useState("");
+  const [newVideoUrl, setNewVideoUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState(null);
@@ -30,12 +33,22 @@ export default function TopicManager({ courseId, topics }) {
       return;
     }
 
+    let videoId = null;
+    if (newVideoUrl.trim()) {
+      videoId = extractYouTubeId(newVideoUrl.trim());
+      if (!videoId) {
+        setError("That doesn't look like a valid YouTube link.");
+        return;
+      }
+    }
+
     setBusy(true);
     const { error } = await supabase.from("topics").insert({
       course_id: courseId,
       title: newTitle.trim(),
       content: sanitizeHtml(html),
       order_index: topics.length,
+      youtube_video_id: videoId,
     });
     setBusy(false);
 
@@ -45,6 +58,7 @@ export default function TopicManager({ courseId, topics }) {
     }
 
     setNewTitle("");
+    setNewVideoUrl("");
     newEditorRef.current?.clear();
     refresh();
   }
@@ -82,6 +96,12 @@ export default function TopicManager({ courseId, topics }) {
             style={{ marginBottom: 10 }}
           />
           <RichTextEditor ref={newEditorRef} placeholder="Write the topic content here..." />
+          <input
+            placeholder="YouTube video link (optional)"
+            value={newVideoUrl}
+            onChange={(e) => setNewVideoUrl(e.target.value)}
+            style={{ marginTop: 10 }}
+          />
           {error && <p style={{ color: "red" }}>{error}</p>}
           <button type="submit" className="btn" disabled={busy} style={{ marginTop: 10 }}>
             {busy ? "Adding..." : "+ Add topic"}
@@ -94,7 +114,6 @@ export default function TopicManager({ courseId, topics }) {
       {topics.map((topic, index) => (
         <TopicItem
           key={topic.id}
-          courseId={courseId}
           topic={topic}
           isFirst={index === 0}
           isLast={index === topics.length - 1}
@@ -109,19 +128,34 @@ export default function TopicManager({ courseId, topics }) {
   );
 }
 
-function TopicItem({ courseId, topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelete, onSaved }) {
+function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelete, onSaved }) {
   const supabase = createClient();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(topic.title);
+  const [videoUrl, setVideoUrl] = useState(
+    topic.youtube_video_id ? `https://youtu.be/${topic.youtube_video_id}` : ""
+  );
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const editRef = useRef(null);
 
   async function handleSave() {
+    setSaveError(null);
+
+    let videoId = null;
+    if (videoUrl.trim()) {
+      videoId = extractYouTubeId(videoUrl.trim());
+      if (!videoId) {
+        setSaveError("That doesn't look like a valid YouTube link.");
+        return;
+      }
+    }
+
     setSaving(true);
     const html = editRef.current?.getHTML() || "";
     await supabase
       .from("topics")
-      .update({ title, content: sanitizeHtml(html), updated_at: new Date().toISOString() })
+      .update({ title, content: sanitizeHtml(html), youtube_video_id: videoId, updated_at: new Date().toISOString() })
       .eq("id", topic.id);
     setSaving(false);
     setEditing(false);
@@ -142,6 +176,7 @@ function TopicItem({ courseId, topic, isFirst, isLast, busy, onMoveUp, onMoveDow
               </span>
             )}
             {topic.hidden && <span className="badge badge-grey" style={{ marginLeft: 6 }}>Unpublished</span>}
+            {topic.youtube_video_id && <span className="badge badge-grey" style={{ marginLeft: 6 }}>📹 Video</span>}
           </span>
         )}
         <div className="action-row" style={{ flexShrink: 0 }}>
@@ -153,6 +188,13 @@ function TopicItem({ courseId, topic, isFirst, isLast, busy, onMoveUp, onMoveDow
       {editing ? (
         <>
           <RichTextEditor ref={editRef} initialContent={topic.content} placeholder="Topic content..." />
+          <input
+            placeholder="YouTube video link (optional)"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            style={{ marginTop: 10 }}
+          />
+          {saveError && <p style={{ color: "red" }}>{saveError}</p>}
           <div className="action-row" style={{ marginTop: 8 }}>
             <button type="button" className="btn btn-sm" onClick={handleSave} disabled={saving}>
               {saving ? "Saving..." : "Save"}
@@ -163,11 +205,9 @@ function TopicItem({ courseId, topic, isFirst, isLast, busy, onMoveUp, onMoveDow
       ) : (
         <>
           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
+          <VideoEmbed videoId={topic.youtube_video_id} />
           <div className="action-row">
             <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditing(true)} disabled={busy}>Edit</button>
-            <a className="btn btn-outline btn-sm" href={`/tutor/courses/${courseId}/topics/${topic.id}/questions`}>
-              Manage test ({topic.questions_per_test} questions)
-            </a>
             <button type="button" className="btn btn-danger btn-sm" onClick={onDelete} disabled={busy}>
               {busy ? "Deleting..." : "Delete"}
             </button>
