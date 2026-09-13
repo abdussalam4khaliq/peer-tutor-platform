@@ -9,7 +9,9 @@ import { sanitizeHtml } from "@/lib/sanitize";
 const SAMPLE_MIN_LENGTH = 200;
 const MOTIVATION_MIN_LENGTH = 100;
 const MIN_SCHEME_TOPICS = 5;
+const MIN_WEEKS = 12;
 const GRADES = ["A", "B", "C", "D", "Distinction", "Pass", "Other"];
+const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function ApplyForm({ courses, tutorId }) {
   const router = useRouter();
@@ -26,6 +28,10 @@ export default function ApplyForm({ courses, tutorId }) {
   const [charCount1, setCharCount1] = useState(0);
   const [sampleTitle2, setSampleTitle2] = useState("");
   const [charCount2, setCharCount2] = useState(0);
+
+  const [weekInput, setWeekInput] = useState("");
+  const [lessonPlan, setLessonPlan] = useState([]);
+  const [postingDays, setPostingDays] = useState([]);
 
   const [grade, setGrade] = useState("");
   const [session, setSession] = useState("");
@@ -45,12 +51,35 @@ export default function ApplyForm({ courses, tutorId }) {
     setSchemeOfWork(schemeOfWork.filter((_, i) => i !== index));
   }
 
+  function addWeek() {
+    const t = weekInput.trim();
+    if (!t) return;
+    setLessonPlan([...lessonPlan, t]);
+    setWeekInput("");
+  }
+
+  function removeWeek(index) {
+    setLessonPlan(lessonPlan.filter((_, i) => i !== index));
+  }
+
+  function toggleDay(day) {
+    setPostingDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
 
     if (schemeOfWork.length < MIN_SCHEME_TOPICS) {
       setError(`Please list at least ${MIN_SCHEME_TOPICS} topics in your scheme of work.`);
+      return;
+    }
+    if (lessonPlan.length < MIN_WEEKS) {
+      setError(`Please plan out at least ${MIN_WEEKS} weeks (a typical semester).`);
+      return;
+    }
+    if (postingDays.length === 0) {
+      setError("Please select at least one day you'll commit to posting content.");
       return;
     }
 
@@ -88,6 +117,8 @@ export default function ApplyForm({ courses, tutorId }) {
       tutor_id: tutorId,
       course_id: courseId,
       scheme_of_work: schemeOfWork,
+      lesson_plan: lessonPlan,
+      posting_days: postingDays.map((d) => d.toLowerCase()),
       sample_title: sampleTitle1,
       sample_content: sanitizeHtml(editorRef1.current?.getHTML() || ""),
       sample_title_2: sampleTitle2,
@@ -155,6 +186,58 @@ export default function ApplyForm({ courses, tutorId }) {
         <p style={{ fontSize: 12, color: schemeOfWork.length >= MIN_SCHEME_TOPICS ? "var(--moss)" : "#b8860b", marginTop: 8 }}>
           {schemeOfWork.length} / {MIN_SCHEME_TOPICS} minimum
         </p>
+      </div>
+
+            <div className="card">
+        <h3 style={{ margin: "0 0 4px" }}>Lesson plan (semester schedule)</h3>
+        <p style={{ fontSize: 13, color: "var(--ink-600)", margin: "0 0 10px" }}>
+          Describe what you'll cover each week for a typical {MIN_WEEKS}-15 week semester, starting from Week 1.
+        </p>
+        <div className="action-row" style={{ marginBottom: 10 }}>
+          <input
+            placeholder={`Week ${lessonPlan.length + 1}: what will you cover?`}
+            value={weekInput}
+            onChange={(e) => setWeekInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addWeek(); } }}
+            style={{ flex: 1 }}
+          />
+          <button type="button" className="btn btn-sm" onClick={addWeek}>+ Add week</button>
+        </div>
+        {lessonPlan.map((w, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid var(--rule)" }}>
+            <span style={{ fontSize: 14 }}>Week {i + 1}: {w}</span>
+            <button type="button" onClick={() => removeWeek(i)} style={{ background: "none", border: "none", color: "#a83a3a", cursor: "pointer", fontSize: 13 }}>Remove</button>
+          </div>
+        ))}
+        <p style={{ fontSize: 12, color: lessonPlan.length >= MIN_WEEKS ? "var(--moss)" : "#b8860b", marginTop: 8 }}>
+          {lessonPlan.length} / {MIN_WEEKS} minimum weeks
+        </p>
+      </div>
+
+      <div className="card">
+        <h3 style={{ margin: "0 0 4px" }}>Posting schedule</h3>
+        <p style={{ fontSize: 13, color: "var(--ink-600)", margin: "0 0 10px" }}>
+          Which days will you commit to posting new content? This becomes your weekly quota — missing a specific
+          day is fine as long as you hit your total for the week.
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {WEEKDAYS.map((day) => (
+            <label key={day} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14 }}>
+              <input
+                type="checkbox"
+                checked={postingDays.includes(day)}
+                onChange={() => toggleDay(day)}
+                style={{ width: "auto" }}
+              />
+              {day}
+            </label>
+          ))}
+        </div>
+        {postingDays.length > 0 && (
+          <p style={{ fontSize: 13, color: "var(--moss)", marginTop: 8 }}>
+            Weekly quota: {postingDays.length} update{postingDays.length === 1 ? "" : "s"}/week
+          </p>
+        )}
       </div>
 
       <div className="card">

@@ -27,7 +27,7 @@ export default async function AdminApplicationsPage() {
     .from("tutor_applications")
     .select(`
       id, sample_title, sample_content, sample_title_2, sample_content_2,
-      scheme_of_work, grade_or_result, completed_session, motivation,
+      scheme_of_work, lesson_plan, posting_days, grade_or_result, completed_session, motivation,
       status, created_at,
       tutor:profiles!tutor_applications_tutor_id_fkey(full_name, email),
       course:courses(code, title)
@@ -80,6 +80,18 @@ export default async function AdminApplicationsPage() {
 
     await supabase.from("profiles").update({ tutor_status: "approved" }).eq("id", app.tutor_id);
     await supabase.from("courses").update({ tutor_id: app.tutor_id, status: "active" }).eq("id", app.course_id);
+
+    await supabase.from("course_lesson_plans").upsert(
+      {
+        course_id: app.course_id,
+        tutor_id: app.tutor_id,
+        lesson_plan: app.lesson_plan,
+        posting_days: app.posting_days,
+        weekly_quota: (app.posting_days || []).length || 1,
+        start_date: new Date().toISOString().slice(0, 10),
+      },
+      { onConflict: "course_id" }
+    );
 
     await supabase.rpc("notify", {
       p_profile_id: app.tutor_id,
@@ -157,6 +169,16 @@ export default async function AdminApplicationsPage() {
           <ol style={{ fontSize: 14, paddingLeft: 20, margin: "0 0 12px" }}>
             {(app.scheme_of_work || []).map((t, i) => <li key={i}>{t}</li>)}
           </ol>
+
+          <p style={{ fontWeight: 600, marginTop: 12 }}>Lesson plan ({(app.lesson_plan || []).length} weeks)</p>
+          <ol style={{ fontSize: 14, paddingLeft: 20, margin: "0 0 12px" }}>
+            {(app.lesson_plan || []).map((w, i) => <li key={i}>{w}</li>)}
+          </ol>
+
+          <p style={{ fontWeight: 600, marginTop: 12 }}>
+            Posting schedule: {(app.posting_days || []).map((d) => d[0].toUpperCase() + d.slice(1)).join(", ")}{" "}
+            ({(app.posting_days || []).length}/week)
+          </p>
 
           <p style={{ fontWeight: "bold" }}>Sample 1: {app.sample_title}</p>
           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(app.sample_content) }} />
