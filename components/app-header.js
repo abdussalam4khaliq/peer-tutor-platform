@@ -7,6 +7,7 @@ import NotificationBell from "@/components/notification-bell";
 const LINKS = (profile) => {
   const links = [
     { href: "/courses", label: "Courses" },
+    { href: "/request-course", label: "Request a course" },
     { href: "/profile", label: "Profile" },
     { href: "/leaderboards", label: "Leaderboards" },
     { href: "/leagues", label: "Leagues" },

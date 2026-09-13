@@ -109,6 +109,7 @@ export default async function CoursesPage() {
           </li>
         ))}
       </ul>
+      <p><a href="/request-course">Don&apos;t see your course? Request it →</a></p>
     </main>
   );
 }
