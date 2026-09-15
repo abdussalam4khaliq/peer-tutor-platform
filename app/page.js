@@ -127,7 +127,7 @@ export default function Home() {
             </div>
             <div className="feature">
               <p className="feature__title">Earn by referring</p>
-              <p className="feature__body">Share your code. Earn ₦100 the moment someone you referred becomes a paying student.</p>
+              <p className="feature__body">Share your code. Earn ₦150 the moment someone you referred becomes a paying student.</p>
             </div>
           </div>
         </div>
