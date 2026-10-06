@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SchoolPicker from "@/components/school-picker";
 import { posthog } from "@/lib/posthog";
+import Modal from "@/components/modal";
 
 export default function SignupForm() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function SignupForm() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -39,10 +41,11 @@ export default function SignupForm() {
 
     const isRequest = pickerValue.mode === "request";
 
-    const { data: signUpData, error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
           full_name: fullName,
           role,
@@ -69,6 +72,13 @@ export default function SignupForm() {
     }
 
     setLoading(false);
+
+    if (!signUpData?.session) {
+      // Email confirmation is required — no active session yet.
+      setShowConfirmModal(true);
+      return;
+    }
+
     posthog.capture("sign_up", { role, method: "email" });
     router.push("/dashboard");
     router.refresh();
@@ -133,6 +143,22 @@ export default function SignupForm() {
       <p>
         Already have an account? <a href="/login">Log in</a>
       </p>
+
+      {showConfirmModal && (
+        <Modal
+          title="Check your email"
+          onClose={() => router.push("/login")}
+          closeLabel="Okay, take me to login"
+        >
+          <p>
+            We&apos;ve sent a confirmation link to <strong>{email}</strong>. Click it to activate your
+            account, then come back and log in.
+          </p>
+          <p style={{ fontSize: 13, color: "var(--ink-600)" }}>
+            Don&apos;t see it? Check your spam folder — it can take a minute or two to arrive.
+          </p>
+        </Modal>
+      )}
     </main>
   );
 }
