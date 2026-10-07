@@ -6,7 +6,7 @@ import DeleteButton from "./delete-button";
 import RatingWidget from "@/components/rating-widget";
 
 export default async function QuestionPage({ params }) {
-  const { id, questionId } = params;
+  const { id, questionId } = await params;
   const supabase = await createClient();
 
   const {

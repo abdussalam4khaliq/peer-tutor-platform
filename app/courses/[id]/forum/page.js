@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
 import AskQuestionForm from "./ask-question-form";
 
 export default async function ForumPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
   const supabase = await createClient();
 
   const {

@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
 import TestRunner from "./test-runner";
 
 export default async function TestPage({ params }) {
-  const { id, topicId } = params;
+  const { id, topicId } = await params;
   const supabase = await createClient();
 
   const {

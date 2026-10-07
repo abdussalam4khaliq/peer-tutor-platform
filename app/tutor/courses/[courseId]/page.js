@@ -4,7 +4,7 @@ import TopicManager from "@/components/topic-manager";
 import AppHeader from "@/components/app-header";
 
 export default async function ManageCourseContentPage({ params }) {
-  const { courseId } = params;
+  const { courseId } = await params;
   const supabase = await createClient();
 
   const {

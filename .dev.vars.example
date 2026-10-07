@@ -1,0 +1,6 @@
+# Copy to .dev.vars for `npm run preview` (local Cloudflare runtime). Never commit .dev.vars.
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxx
+PAYSTACK_ENABLED=false
+VAPID_PRIVATE_KEY=your-vapid-private-key
+PUSH_WEBHOOK_SECRET=your-push-webhook-secret

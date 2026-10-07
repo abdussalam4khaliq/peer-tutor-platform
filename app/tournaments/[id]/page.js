@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import AppHeader from "@/components/app-header";
 
 export default async function TournamentDetailPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
   const supabase = await createClient();
 
   const {

@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
 import QuestionBankManager from "./question-bank-manager";
 
 export default async function ManageQuestionsPage({ params }) {
-  const { courseId, topicId } = params;
+  const { courseId, topicId } = await params;
   const supabase = await createClient();
 
   const {

@@ -7,7 +7,7 @@ import RatingWidget from "@/components/rating-widget";
 import VideoEmbed from "@/components/video-embed";
 
 export default async function CourseDetailPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
   const supabase = await createClient();
 
   const {
