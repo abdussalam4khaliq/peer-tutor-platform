@@ -31,6 +31,10 @@ const LINKS = (profile) => {
     { href: "/report-bug", label: "Report a bug" }
   );
 
+  if (profile?.role !== "admin" && profile?.role !== "super_admin") {
+    links.splice(1, 0, { href: "/payment-info", label: "Pay / renew" });
+  }
+
   return links;
 };
 

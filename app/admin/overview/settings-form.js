@@ -13,6 +13,7 @@ export default function SettingsForm({ settings }) {
     course_price_naira: settings?.course_price_naira ?? 1000,
     tutor_commission_naira: settings?.tutor_commission_naira ?? 300,
     referral_bonus_naira: settings?.referral_bonus_naira ?? 100,
+    referral_recurring_limit: settings?.referral_recurring_limit ?? 5,
     payment_bank_name: settings?.payment_bank_name ?? "",
     payment_account_number: settings?.payment_account_number ?? "",
     payment_account_name: settings?.payment_account_name ?? "",
@@ -38,6 +39,7 @@ export default function SettingsForm({ settings }) {
         course_price_naira: Number(form.course_price_naira),
         tutor_commission_naira: Number(form.tutor_commission_naira),
         referral_bonus_naira: Number(form.referral_bonus_naira),
+        referral_recurring_limit: Math.max(0, Math.floor(Number(form.referral_recurring_limit) || 0)),
         payment_bank_name: form.payment_bank_name.trim(),
         payment_account_number: form.payment_account_number.trim(),
         payment_account_name: form.payment_account_name.trim(),
@@ -75,14 +77,22 @@ export default function SettingsForm({ settings }) {
       </label>
 
       <label>
-        Tutor commission per paid student (₦)
+        Tutor commission (₦ per course, per month of access paid)
         <input type="number" value={form.tutor_commission_naira} onChange={(e) => setForm({ ...form, tutor_commission_naira: e.target.value })} />
       </label>
 
       <label>
-        Referral bonus (₦, one-time)
+        Referral bonus (₦ per month of access for recurring referrals; a flat one-time amount otherwise)
         <input type="number" value={form.referral_bonus_naira} onChange={(e) => setForm({ ...form, referral_bonus_naira: e.target.value })} />
       </label>
+
+      <label>
+        Recurring referral slots per referrer
+        <input type="number" min="0" value={form.referral_recurring_limit} onChange={(e) => setForm({ ...form, referral_recurring_limit: e.target.value })} />
+      </label>
+      <p style={{ margin: 0, fontSize: 13, color: "var(--ink-600)" }}>
+        A referrer&apos;s first students (up to this number) earn them the bonus on every payment they make. Further students earn a one-time bonus only.
+      </p>
 
       <hr style={{ border: "none", borderTop: "1px solid var(--rule)" }} />
       <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Bank transfer details (shown to students)</p>

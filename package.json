@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
@@ -15,10 +15,11 @@
     "@supabase/supabase-js": "^2.45.4",
     "@tiptap/extension-link": "^3.31.0",
     "@tiptap/extension-placeholder": "^3.31.0",
+    "@tiptap/extension-table": "^3.31.0",
     "@tiptap/pm": "^3.31.0",
     "@tiptap/react": "^3.31.0",
     "@tiptap/starter-kit": "^3.31.0",
-    "next": "^15.5.27",
+    "next": "^16.4.3",
     "posthog-js": "^1.430.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -26,9 +27,9 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.20.9",
+    "@opennextjs/cloudflare": "^1.20.15",
     "@types/node": "26.4.1",
     "typescript": "7.0.2",
-    "wrangler": "^4.148.0"
+    "wrangler": "^4.156.0"
   }
 }

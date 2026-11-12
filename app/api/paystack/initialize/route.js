@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { initializeTransaction } from "@/lib/paystack";
+import { buildSplit, platformKeepsEnough } from "@/lib/split";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,24 +74,87 @@ export async function POST(request) {
 
   // The price always comes from the database, never from the browser.
   const amountKobo = Math.round(Number(plan.price_naira) * 100);
-  const reference = `CM-${crypto.randomUUID()}`;
 
   const admin = createAdminClient();
 
-  const { error: insertError } = await admin.from("payments").insert({
-    reference,
-    student_id: user.id,
-    plan_id: plan.id,
-    enrollment_ids: enrollmentIds,
-    amount_kobo: amountKobo,
+  // Work out who gets paid what. Everything here is decided on the server.
+  const { data: planned, error: planError } = await admin.rpc("plan_payment_shares", {
+    p_student: user.id,
+    p_enrollment_ids: enrollmentIds,
+    p_plan_id: plan.id,
   });
 
-  if (insertError) {
+  if (planError || !planned) {
+    console.error("plan_payment_shares failed:", planError);
+    return NextResponse.json({ error: "Couldn't start the payment. Please try again." }, { status: 500 });
+  }
+
+  // A tutor without a verified payout account can't be paid directly, so we don't take the money.
+  // (Otherwise their share would sit with Coursemate, which is exactly what we avoid.)
+  if (Array.isArray(planned.missing_tutors) && planned.missing_tutors.length > 0) {
+    const courses = [...new Set(planned.missing_tutors.map((m) => m.course_code))].join(", ");
+    return NextResponse.json(
+      {
+        error: `The tutor for ${courses} hasn't finished setting up their payout account yet, so this can't be paid for right now. Please try again later or choose other courses.`,
+      },
+      { status: 409 }
+    );
+  }
+
+  const shares = planned.shares || [];
+
+  if (!platformKeepsEnough(amountKobo, shares)) {
+    // Only possible if commissions/bonuses are set too high for the plan price.
+    console.error("Payout shares too large for plan", { plan: plan.id, amountKobo, shares });
+    return NextResponse.json(
+      { error: "Payments for this plan are temporarily unavailable. Please contact support." },
+      { status: 500 }
+    );
+  }
+
+  let split;
+  try {
+    split = buildSplit(shares);
+  } catch (err) {
+    console.error("buildSplit failed:", err);
+    return NextResponse.json({ error: "Couldn't start the payment. Please try again." }, { status: 500 });
+  }
+
+  const reference = `CM-${crypto.randomUUID()}`;
+
+  const { data: payment, error: insertError } = await admin
+    .from("payments")
+    .insert({
+      reference,
+      student_id: user.id,
+      plan_id: plan.id,
+      enrollment_ids: enrollmentIds,
+      amount_kobo: amountKobo,
+      split_mode: true,
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !payment) {
     console.error("payments insert failed:", insertError);
     return NextResponse.json({ error: "Couldn't start the payment. Please try again." }, { status: 500 });
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+  const { error: planInsertError } = await admin.from("payment_split_plans").insert({
+    payment_id: payment.id,
+    shares,
+    referrer_id: planned.referrer_id || null,
+    referral_recurring: planned.referral_recurring ?? null,
+  });
+
+  if (planInsertError) {
+    console.error("payment_split_plans insert failed:", planInsertError);
+    await admin.from("payments").update({ status: "failed", note: "Could not save the payout plan" }).eq("id", payment.id);
+    return NextResponse.json({ error: "Couldn't start the payment. Please try again." }, { status: 500 });
+  }
+
+  // Always send the student back to the same site they paid from.
+  const siteUrl = new URL(request.url).origin;
 
   try {
     const tx = await initializeTransaction({
@@ -99,6 +163,7 @@ export async function POST(request) {
       reference,
       callbackUrl: `${siteUrl}/payment/callback`,
       metadata: { student_id: user.id, plan_id: plan.id, plan_name: plan.name },
+      split,
     });
 
     return NextResponse.json({ authorization_url: tx.authorization_url, reference });

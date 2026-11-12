@@ -60,6 +60,13 @@ export default async function AdminPage() {
           <p>See who&apos;s on trial or paid, and mark bank transfers as paid.</p>
         </a>
 
+        <a href="/admin/payments" className="card admin-link-card">
+          <div className="admin-link-card__top">
+            <strong>Paystack payments</strong>
+          </div>
+          <p>See every card payment, and handle mismatches, refunds and disputes.</p>
+        </a>
+
         <a href="/admin/tournaments" className="card admin-link-card">
           <div className="admin-link-card__top">
             <strong>Tournaments</strong>

@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TopicManager from "@/components/topic-manager";
 import AppHeader from "@/components/app-header";
+import PlanView from "@/components/plan-view";
 
 export default async function ManageCourseContentPage({ params }) {
   const { courseId } = await params;
@@ -73,7 +74,19 @@ export default async function ManageCourseContentPage({ params }) {
         </div>
       )}
 
-      <TopicManager courseId={course.id} topics={topics || []} />
+      {plan && ((plan.scheme_of_work || []).length > 0 || (plan.lesson_plan || []).length > 0) && (
+        <details className="card">
+          <summary style={{ cursor: "pointer", fontWeight: 600 }}>Your approved syllabus and lesson plan</summary>
+          <PlanView syllabus={plan.scheme_of_work} lessonPlan={plan.lesson_plan} />
+        </details>
+      )}
+
+      <TopicManager
+        courseId={course.id}
+        topics={topics || []}
+        syllabus={plan?.scheme_of_work || []}
+        lessonPlan={plan?.lesson_plan || []}
+      />
     </main>
   );
 }

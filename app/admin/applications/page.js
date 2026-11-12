@@ -5,6 +5,7 @@ import { getMaxCoursesForRole } from "@/lib/config";
 import { sanitizeHtml } from "@/lib/sanitize";
 import ActionButton from "@/components/action-button";
 import AppHeader from "@/components/app-header";
+import PlanView from "@/components/plan-view";
 
 export default async function AdminApplicationsPage() {
   const supabase = await createClient();
@@ -86,6 +87,7 @@ export default async function AdminApplicationsPage() {
         course_id: app.course_id,
         tutor_id: app.tutor_id,
         lesson_plan: app.lesson_plan,
+        scheme_of_work: app.scheme_of_work,
         posting_days: app.posting_days,
         weekly_quota: (app.posting_days || []).length || 1,
         start_date: new Date().toISOString().slice(0, 10),
@@ -165,15 +167,7 @@ export default async function AdminApplicationsPage() {
           <p style={{ fontWeight: 600, marginTop: 12 }}>Why they'd be a good fit</p>
           <p style={{ fontSize: 14, whiteSpace: "pre-wrap" }}>{app.motivation}</p>
 
-          <p style={{ fontWeight: 600, marginTop: 12 }}>Scheme of work ({(app.scheme_of_work || []).length} topics)</p>
-          <ol style={{ fontSize: 14, paddingLeft: 20, margin: "0 0 12px" }}>
-            {(app.scheme_of_work || []).map((t, i) => <li key={i}>{t}</li>)}
-          </ol>
-
-          <p style={{ fontWeight: 600, marginTop: 12 }}>Lesson plan ({(app.lesson_plan || []).length} weeks)</p>
-          <ol style={{ fontSize: 14, paddingLeft: 20, margin: "0 0 12px" }}>
-            {(app.lesson_plan || []).map((w, i) => <li key={i}>{w}</li>)}
-          </ol>
+          <PlanView syllabus={app.scheme_of_work} lessonPlan={app.lesson_plan} />
 
           <p style={{ fontWeight: 600, marginTop: 12 }}>
             Posting schedule: {(app.posting_days || []).map((d) => d[0].toUpperCase() + d.slice(1)).join(", ")}{" "}

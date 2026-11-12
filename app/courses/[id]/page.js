@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EnrollButton from "./enroll-button";
 import { sanitizeHtml } from "@/lib/sanitize";
+import TopicOutline from "@/components/topic-outline";
 import AppHeader from "@/components/app-header";
 import RatingWidget from "@/components/rating-widget";
 import VideoEmbed from "@/components/video-embed";
@@ -38,7 +39,7 @@ export default async function CourseDetailPage({ params }) {
 
   const { data: topics } = await supabase
     .from("topics")
-    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count, youtube_video_id")
+    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count, youtube_video_id, learning_objectives, subtopics")
     .eq("course_id", id)
     .order("order_index", { ascending: true });
 
@@ -85,6 +86,10 @@ export default async function CourseDetailPage({ params }) {
 
       {entitled && <p><a href={`/courses/${course.id}/forum`}>Go to course forum →</a></p>}
 
+      {enrollment && !isAdmin && entitled && (
+        <p><a href="/payment-info">Pay or renew →</a></p>
+      )}
+
       {onTrial && (
         <p><span className="badge badge-green">Free trial until {new Date(enrollment.trial_ends_at).toLocaleDateString()}</span></p>
       )}
@@ -122,6 +127,7 @@ export default async function CourseDetailPage({ params }) {
         return (
           <div key={topic.id} className="card">
             <strong>{topic.title}</strong>
+            <TopicOutline objectives={topic.learning_objectives} subtopics={topic.subtopics} />
             <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
             <VideoEmbed videoId={topic.youtube_video_id} />
               {hasQuestions && (
