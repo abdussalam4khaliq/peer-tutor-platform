@@ -14,6 +14,7 @@ export default function SettingsForm({ settings }) {
     tutor_commission_naira: settings?.tutor_commission_naira ?? 300,
     referral_bonus_naira: settings?.referral_bonus_naira ?? 100,
     referral_recurring_limit: settings?.referral_recurring_limit ?? 5,
+    referral_bonus_days: settings?.referral_bonus_days ?? 7,
     payment_bank_name: settings?.payment_bank_name ?? "",
     payment_account_number: settings?.payment_account_number ?? "",
     payment_account_name: settings?.payment_account_name ?? "",
@@ -40,6 +41,7 @@ export default function SettingsForm({ settings }) {
         tutor_commission_naira: Number(form.tutor_commission_naira),
         referral_bonus_naira: Number(form.referral_bonus_naira),
         referral_recurring_limit: Math.max(0, Math.floor(Number(form.referral_recurring_limit) || 0)),
+        referral_bonus_days: Math.max(0, Math.floor(Number(form.referral_bonus_days) || 0)),
         payment_bank_name: form.payment_bank_name.trim(),
         payment_account_number: form.payment_account_number.trim(),
         payment_account_name: form.payment_account_name.trim(),
@@ -82,8 +84,13 @@ export default function SettingsForm({ settings }) {
       </label>
 
       <label>
-        Referral bonus (₦ per month of access for recurring referrals; a flat one-time amount otherwise)
+        Referral bonus for TUTOR referrers (₦ per month of access for recurring referrals; a flat one-time amount otherwise). Paid straight to their payout account.
         <input type="number" value={form.referral_bonus_naira} onChange={(e) => setForm({ ...form, referral_bonus_naira: e.target.value })} />
+      </label>
+
+      <label>
+        Referral reward for everyone else (extra days of access, one-time)
+        <input type="number" min="0" value={form.referral_bonus_days} onChange={(e) => setForm({ ...form, referral_bonus_days: e.target.value })} />
       </label>
 
       <label>

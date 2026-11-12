@@ -60,6 +60,17 @@ export async function POST(request) {
     return NextResponse.json({ error: "Couldn't save your account. Please try again." }, { status: 500 });
   }
 
+  // A changed account is the signature of a hijacked login: tell the owner.
+  if (before?.payout_verified_at && !unchanged) {
+    await admin.rpc("notify", {
+      p_profile_id: auth.user.id,
+      p_type: "payment",
+      p_title: "Payout account changed",
+      p_body: `Your earnings will now be sent to ${result.bank.name} ending ${result.accountNumber.slice(-4)}. If this wasn't you, contact an admin right away.`,
+      p_link: "/wallet",
+    });
+  }
+
   let payoutReady = false;
   try {
     const sub = await createSubaccount({
