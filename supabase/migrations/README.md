@@ -37,8 +37,8 @@ right now for:
 
 ## Going forward
 
-From today, **every new SQL block goes into a new numbered file** in this
-folder (`11_whatever_comes_next.sql`, `12_...`, etc.) **at the same time**
+**Every new SQL block goes into a new numbered file** in this
+folder (the next one is `22_...`) **at the same time**
 it's run in Supabase — not reconstructed later. This keeps the two in sync
 without ever needing another big reconstruction like this one.
 
@@ -57,3 +57,14 @@ without ever needing another big reconstruction like this one.
 | `08_moderation.sql` | `reports`, `bug_reports` (suspend/ban columns live in `02_profiles.sql`) |
 | `09_wallet_and_ledger.sql` | `wallet_transactions`, `withdrawal_requests`, `site_settings`, `site_ledger` |
 | `10_tournaments.sql` | `tournaments`, `tournament_prize_log`, standings function |
+| `11_notifications.sql` | `notifications` table and its policies |
+| `12_streak_reset.sql` | `reset_stale_streaks()` |
+| `13_push_subscriptions.sql` | Web push subscriptions |
+| `14_new_topic_notifications.sql` | Notify enrolled students when a tutor adds a topic |
+| `15_content_review.sql` | Hidden topics, rating-based content review, `topic_gate_passed()`, test RPCs |
+| `16_structure_and_course_requests.sql` | Requests for new schools/faculties/departments and courses |
+| `17_Lesson_plans.sql` | Tutor lesson plans, posting schedule and compliance |
+| `18_bundles.sql` | `payment_plans` and bundle payments |
+| `19_paystack_payments.sql` | Paystack `payments` table and completion functions |
+| `20_topic_lock_chain.sql` | Topic lock now checks every earlier test (`topic_chain_open()`); fixes the ambiguous `current_streak` error on repeat test submissions |
+| `21_timed_quizzes.sql` | Timed tutor quizzes: tables, RLS, `quiz-answers` storage bucket and quiz RPCs |

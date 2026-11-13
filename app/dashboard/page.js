@@ -90,10 +90,9 @@ export default async function DashboardPage() {
 
   const { data: credits } = await supabase
     .from("referral_credits")
-    .select("amount, reward_days")
+    .select("amount")
     .eq("referrer_id", user.id);
   const totalEarned = (credits || []).reduce((sum, c) => sum + Number(c.amount), 0);
-  const totalDays = (credits || []).reduce((sum, c) => sum + Number(c.reward_days || 0), 0);
 
   const isAdmin = profile.role === "admin" || profile.role === "super_admin";
   const isTutor = profile.role === "tutor";
@@ -123,6 +122,7 @@ export default async function DashboardPage() {
           </a>
         )}
         {isAdmin && <a className="btn btn-outline btn-sm" href="/apply-tutor">Apply to teach a course</a>}
+        {isStudent && <a className="btn btn-outline btn-sm" href="/progress">My progress</a>}
         {isStudent && <a className="btn btn-outline btn-sm" href="/leaderboards">Leaderboard</a>}
         {isStudent && <a className="btn btn-outline btn-sm" href="/leagues">Leagues</a>}
         {isTutor && <a className="btn btn-outline btn-sm" href="/tutor/leaderboards">Leaderboard</a>}
@@ -158,19 +158,10 @@ export default async function DashboardPage() {
             {profile.referral_code || "—"}
           </span>
         </div>
-        {(isTutor || totalEarned > 0) && (
-          <div className="field-row">
-            <span className="field-row__label">Cash bonuses</span>
-            <span className="field-row__value">₦{totalEarned}</span>
-          </div>
-        )}
         <div className="field-row">
-          <span className="field-row__label">Bonus access days earned</span>
-          <span className="field-row__value">{totalDays}</span>
+          <span className="field-row__label">Total earned</span>
+          <span className="field-row__value">₦{totalEarned}</span>
         </div>
-        <p style={{ fontSize: 13, margin: "8px 0 0" }}>
-          When someone you refer subscribes, tutors get a cash bonus paid straight to their payout account. Everyone else gets extra days of access.
-        </p>
       </div>
       <ReferralShare referralCode={profile.referral_code} />
     </main>

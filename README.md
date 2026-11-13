@@ -1,56 +1,53 @@
-# Peer Tutor Platform — Phase 0 Setup
+# Coursemate (peer-tutor-platform)
 
-This is the starter project. Follow these steps in order.
+Learn from the classmate who already aced it. Students get department-specific
+courses built from top students' notes; tutors earn from the students they teach.
 
-## 1. Install Node.js
-Download and install the **LTS version** from https://nodejs.org if you don't have it already.
-Check it worked by opening a terminal and running:
-```
-node -v
-```
+Live at https://virtualcoursemate.com.ng
 
-## 2. Unzip this project
-Unzip the folder somewhere on your computer, e.g. `Documents/peer-tutor-platform`.
+## Stack
 
-## 3. Install dependencies
-Open a terminal **inside the project folder** and run:
+- **Next.js 14** (App Router, plain JavaScript) deployed on Vercel
+- **Supabase**: Postgres + Row Level Security, Auth, Storage
+- **Paystack** for payments, **PostHog** for analytics, **web-push** for notifications
+
+## Run it locally
+
 ```
 npm install
-```
-
-## 4. Run it locally
-```
+cp .env.local.example .env.local   # then fill in the values
 npm run dev
 ```
-Open http://localhost:3000 — you should see "Peer Tutor Platform 🎓" with a red ❌ next to
-Supabase (that's expected, we haven't connected it yet).
 
-## 5. Create a GitHub repo
-1. Go to https://github.com/new
-2. Name it e.g. `peer-tutor-platform`, keep it **Private**, don't add a README (we already have one).
-3. Follow GitHub's instructions under "…or push an existing repository from the command line", run those commands inside the project folder.
+Open http://localhost:3000.
 
-## 6. Create a Supabase project
-1. Go to https://supabase.com, sign up/log in, click **New Project**.
-2. Pick a name and a strong database password (save it somewhere safe).
-3. Once it's created, go to **Project Settings > API**.
-4. Copy the **Project URL** and the **anon public key**.
+## Project layout
 
-## 7. Connect Supabase locally
-1. In the project folder, copy `.env.local.example` to a new file called `.env.local`.
-2. Paste in the URL and anon key you copied above.
-3. Restart `npm run dev` — refresh http://localhost:3000 and the Supabase line should now show ✅.
+| Folder | What lives there |
+|---|---|
+| `app/` | Pages and routes (student, tutor, admin, API routes) |
+| `components/` | Shared UI (header, course reader, rating widget, editors) |
+| `lib/` | Supabase clients, Paystack, helpers (`topic-lock.js`, `quiz.js`, `progress.js`, `format.js`) |
+| `supabase/migrations/` | The database schema. Read `supabase/migrations/README.md` first. |
+| `middleware.js` | Session refresh and redirect of suspended accounts |
 
-## 8. Deploy to Vercel
-1. Go to https://vercel.com and sign up using your **GitHub account**.
-2. Click **Add New > Project**, select your `peer-tutor-platform` repo.
-3. Before deploying, expand **Environment Variables** and add the same two values from `.env.local`:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-4. Click **Deploy**. Vercel gives you a live `.vercel.app` URL when it's done.
+## Features at a glance
 
-## ✅ Phase 0 is done when:
-- You have a live Vercel URL showing the ✅ Supabase line.
-- Your code is pushed to a private GitHub repo.
+- Courses by school / faculty / department, free preview of the first two topics, 7-day trial
+- Course reader: one topic per page (swipe, arrow keys or buttons) with a topics sidebar
+- Topic tests (CBT): 80% to pass, each test unlocks the next topic, retakes allowed (reduced EXP after the first pass)
+- Timed tutor quizzes: availability window + per-student time limit, auto-marked and hand-marked questions, photo upload for written working
+- Student progress pages (`/progress`)
+- Forums, ratings, leaderboards, leagues, tournaments, referral credits
+- Wallet, withdrawals, tutor commissions, Paystack checkout
+- Admin tools: applications, content review, reports, ledger, withdrawals, tutor compliance
 
-Come back to Claude once this is working, and we'll move to Phase 1 (sign-up/login with roles).
+## Database changes
+
+Every change to the database goes in a **new numbered file** in `supabase/migrations/`
+and is run in the Supabase SQL Editor at the same time. See the README in that folder.
+
+## Deploying
+
+Pushing to the main branch deploys through Vercel. Set the same environment
+variables from `.env.local.example` in the Vercel project settings.

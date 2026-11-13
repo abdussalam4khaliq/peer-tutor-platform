@@ -7,6 +7,7 @@ import NotificationBell from "@/components/notification-bell";
 const LINKS = (profile) => {
   const links = [
     { href: "/courses", label: "Courses" },
+    { href: "/progress", label: "My progress" },
     { href: "/request-course", label: "Request a course" },
     { href: "/profile", label: "Profile" },
     { href: "/leaderboards", label: "Leaderboards" },
@@ -30,10 +31,6 @@ const LINKS = (profile) => {
     { href: "/report", label: "Report a user" },
     { href: "/report-bug", label: "Report a bug" }
   );
-
-  if (profile?.role !== "admin" && profile?.role !== "super_admin") {
-    links.splice(1, 0, { href: "/payment-info", label: "Pay / renew" });
-  }
 
   return links;
 };

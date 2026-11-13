@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
 import TestRunner from "./test-runner";
 
 export default async function TestPage({ params }) {
-  const { id, topicId } = await params;
+  const { id, topicId } = params;
   const supabase = await createClient();
 
   const {
@@ -30,7 +30,7 @@ export default async function TestPage({ params }) {
   return (
     <main className="app-container app-container--narrow">
       <AppHeader profile={profile} />
-      <p><a href={`/courses/${id}`}>← Back to course</a></p>
+      <p><a href={`/courses/${id}?topic=${topicId}`}>← Back to topic</a></p>
       <h1>Test: {topic.title}</h1>
       <TestRunner topicId={topic.id} courseId={id} />
     </main>
