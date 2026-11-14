@@ -27,10 +27,14 @@ const LINKS = (profile) => {
 
   links.push(
     { href: "/tournaments", label: "Tournaments" },
-    { href: "/wallet", label: "Wallet" },
+    { href: "/payouts", label: "Payouts" },
     { href: "/report", label: "Report a user" },
     { href: "/report-bug", label: "Report a bug" }
   );
+
+  if (profile?.role !== "admin" && profile?.role !== "super_admin") {
+    links.splice(1, 0, { href: "/payment-info", label: "Pay / renew" });
+  }
 
   return links;
 };

@@ -6,12 +6,15 @@ import AppHeader from "@/components/app-header";
 import RatingWidget from "@/components/rating-widget";
 import VideoEmbed from "@/components/video-embed";
 import CourseReader from "@/components/course-reader";
+import TopicOutline from "@/components/topic-outline";
 import { computeTopicStates, pickResumeIndex } from "@/lib/topic-lock";
 import { quizPhase, PHASE_BADGE } from "@/lib/quiz";
 import { formatDate, formatDateTime } from "@/lib/format";
 
 export default async function CourseDetailPage({ params, searchParams }) {
-  const { id } = params;
+  // Next 15+/16: params and searchParams are promises
+  const { id } = await params;
+  const query = (await searchParams) || {};
   const supabase = await createClient();
 
   const {
@@ -42,7 +45,7 @@ export default async function CourseDetailPage({ params, searchParams }) {
 
   const { data: topics } = await supabase
     .from("topics")
-    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count, youtube_video_id, hidden")
+    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count, youtube_video_id, hidden, learning_objectives, subtopics")
     .eq("course_id", id)
     .order("order_index", { ascending: true });
 
@@ -79,8 +82,8 @@ export default async function CourseDetailPage({ params, searchParams }) {
   const states = computeTopicStates(topicList, passedSet);
 
   let initialIndex = pickResumeIndex(states);
-  const wanted = searchParams?.topic;
-  const after = searchParams?.after;
+  const wanted = query.topic;
+  const after = query.after;
   if (wanted) {
     const i = topicList.findIndex((t) => t.id === wanted);
     if (i >= 0) initialIndex = i;
@@ -115,6 +118,7 @@ export default async function CourseDetailPage({ params, searchParams }) {
             {topic.title}
             {topic.hidden && <span className="badge badge-amber" style={{ marginLeft: 8 }}>Hidden from students</span>}
           </h2>
+          <TopicOutline objectives={topic.learning_objectives} subtopics={topic.subtopics} />
           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
           <VideoEmbed videoId={topic.youtube_video_id} />
           {state.hasTest && (
@@ -178,6 +182,10 @@ export default async function CourseDetailPage({ params, searchParams }) {
       {isAdmin && <p><span className="badge badge-green">Admin access</span></p>}
 
       {entitled && <p><a href={`/courses/${course.id}/forum`}>Go to course forum →</a></p>}
+
+      {enrollment && !isAdmin && entitled && (
+        <p><a href="/payment-info">Pay or renew →</a></p>
+      )}
 
       {onTrial && (
         <p><span className="badge badge-green">Free trial until {formatDate(enrollment.trial_ends_at)}</span></p>

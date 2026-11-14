@@ -1,5 +1,5 @@
 -- ============================================================
--- 20: Topic lock chain fix
+-- 29: Topic lock chain fix
 -- Before: a topic was only locked if the topic directly before it had an
 -- unpassed test. A topic WITHOUT a test in the middle broke the chain, so
 -- the topic after it opened even though earlier tests were unpassed.

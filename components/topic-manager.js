@@ -5,31 +5,68 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import RichTextEditor from "@/components/rich-text-editor";
 import VideoEmbed from "@/components/video-embed";
+import ListEditor from "@/components/list-editor";
+import TopicOutline from "@/components/topic-outline";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { extractYouTubeId } from "@/lib/youtube";
+import { LIMITS, cleanLine, cleanList, normalizeSyllabus, sameTitle, topicDraftFromPlan } from "@/lib/syllabus";
 
-export default function TopicManager({ courseId, topics }) {
+const CUSTOM = "__custom__";
+
+export default function TopicManager({ courseId, topics, syllabus = [], lessonPlan = [] }) {
   const router = useRouter();
   const supabase = createClient();
+  const syllabusTopics = normalizeSyllabus(syllabus);
 
-  const [newTitle, setNewTitle] = useState("");
+  const [choice, setChoice] = useState(""); // a syllabus title, CUSTOM, or ""
+  const [customTitle, setCustomTitle] = useState("");
+  const [objectives, setObjectives] = useState([]);
+  const [subtopics, setSubtopics] = useState([]);
   const [newVideoUrl, setNewVideoUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState(null);
   const newEditorRef = useRef(null);
+  const submittingRef = useRef(false);
+
+  // Syllabus topics that don't have a topic page yet
+  const used = topics.map((t) => t.syllabus_topic || t.title);
+  const available = syllabusTopics.filter((s) => !used.some((u) => sameTitle(u, s.title)));
+  const hasSyllabus = syllabusTopics.length > 0;
+  const usingCustom = !hasSyllabus || choice === CUSTOM;
+  const title = usingCustom ? cleanLine(customTitle, LIMITS.TITLE_MAX) : choice;
 
   function refresh() {
     router.refresh();
   }
 
+  function onChoose(value) {
+    setChoice(value);
+    setError(null);
+    if (value && value !== CUSTOM) {
+      // Fill in what you planned for this topic. You can still change it.
+      const draft = topicDraftFromPlan(lessonPlan, value);
+      setObjectives(draft.objectives);
+      setSubtopics(draft.subtopics);
+    }
+  }
+
   async function addTopic(e) {
     e.preventDefault();
+    if (submittingRef.current) return;
     setError(null);
 
     const html = newEditorRef.current?.getHTML() || "";
-    if (!newTitle.trim() || newEditorRef.current?.isEmpty()) {
-      setError("Please add a title and some content.");
+    if (!title) {
+      setError(hasSyllabus ? "Choose a syllabus topic, or pick \"Other\" and type a title." : "Please add a title.");
+      return;
+    }
+    if (objectives.length === 0) {
+      setError("Add at least one learning objective, so students know what they'll learn.");
+      return;
+    }
+    if (newEditorRef.current?.isEmpty()) {
+      setError("Please add the notes for this topic.");
       return;
     }
 
@@ -42,22 +79,30 @@ export default function TopicManager({ courseId, topics }) {
       }
     }
 
+    submittingRef.current = true;
     setBusy(true);
-    const { error } = await supabase.from("topics").insert({
+    const { error: insertError } = await supabase.from("topics").insert({
       course_id: courseId,
-      title: newTitle.trim(),
+      title,
       content: sanitizeHtml(html),
       order_index: topics.length ? Math.max(...topics.map((t) => t.order_index)) + 1 : 0,
       youtube_video_id: videoId,
+      learning_objectives: cleanList(objectives, LIMITS.MAX_OBJECTIVES, LIMITS.OBJECTIVE_MAX),
+      subtopics: cleanList(subtopics, LIMITS.MAX_SUBTOPICS, LIMITS.SUBTOPIC_MAX),
+      syllabus_topic: usingCustom ? null : choice,
     });
     setBusy(false);
+    submittingRef.current = false;
 
-    if (error) {
-      setError(error.message);
+    if (insertError) {
+      setError(insertError.message);
       return;
     }
 
-    setNewTitle("");
+    setChoice("");
+    setCustomTitle("");
+    setObjectives([]);
+    setSubtopics([]);
     setNewVideoUrl("");
     newEditorRef.current?.clear();
     refresh();
@@ -89,13 +134,57 @@ export default function TopicManager({ courseId, topics }) {
       <div className="card">
         <form onSubmit={addTopic}>
           <h3 style={{ margin: "0 0 10px" }}>Add a topic</h3>
-          <input
-            placeholder="Topic title"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            style={{ marginBottom: 10 }}
-          />
-          <RichTextEditor ref={newEditorRef} placeholder="Write the topic content here..." />
+
+          {hasSyllabus && (
+            <select value={choice} onChange={(e) => onChoose(e.target.value)} style={{ marginBottom: 10 }}>
+              <option value="">Choose a topic from your syllabus...</option>
+              {available.map((s) => (
+                <option key={s.title} value={s.title}>{s.title}</option>
+              ))}
+              <option value={CUSTOM}>Other (not in my syllabus)</option>
+            </select>
+          )}
+          {hasSyllabus && available.length === 0 && (
+            <p style={{ fontSize: 13, color: "var(--moss)", margin: "0 0 10px" }}>
+              Every syllabus topic now has a page. You can still add extra topics with &quot;Other&quot;.
+            </p>
+          )}
+
+          {usingCustom && (
+            <input
+              placeholder="Topic title"
+              value={customTitle}
+              maxLength={LIMITS.TITLE_MAX}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              style={{ marginBottom: 10 }}
+            />
+          )}
+
+          {(title || !hasSyllabus) && (
+            <>
+              <ListEditor
+                label="Learning objectives"
+                hint="Shown to students first: what they will be able to do after this topic."
+                items={objectives}
+                onChange={setObjectives}
+                placeholder="Students will be able to..."
+                max={LIMITS.MAX_OBJECTIVES}
+                maxLength={LIMITS.OBJECTIVE_MAX}
+              />
+              <ListEditor
+                label="Subtopics"
+                hint="The parts this topic covers (optional)."
+                items={subtopics}
+                onChange={setSubtopics}
+                placeholder="e.g. Tree traversal"
+                max={LIMITS.MAX_SUBTOPICS}
+                maxLength={LIMITS.SUBTOPIC_MAX}
+              />
+            </>
+          )}
+
+          <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 14 }}>Notes</p>
+          <RichTextEditor ref={newEditorRef} placeholder="Write the topic notes here..." />
           <input
             placeholder="YouTube video link (optional)"
             value={newVideoUrl}
@@ -132,9 +221,9 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
   const supabase = createClient();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(topic.title);
-  const [videoUrl, setVideoUrl] = useState(
-    topic.youtube_video_id ? `https://youtu.be/${topic.youtube_video_id}` : ""
-  );
+  const [objectives, setObjectives] = useState(Array.isArray(topic.learning_objectives) ? topic.learning_objectives : []);
+  const [subtopics, setSubtopics] = useState(Array.isArray(topic.subtopics) ? topic.subtopics : []);
+  const [videoUrl, setVideoUrl] = useState(topic.youtube_video_id ? `https://youtu.be/${topic.youtube_video_id}` : "");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const editRef = useRef(null);
@@ -150,14 +239,30 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
         return;
       }
     }
+    if (!title.trim()) {
+      setSaveError("The topic needs a title.");
+      return;
+    }
 
     setSaving(true);
     const html = editRef.current?.getHTML() || "";
-    await supabase
+    const { error } = await supabase
       .from("topics")
-      .update({ title, content: sanitizeHtml(html), youtube_video_id: videoId, updated_at: new Date().toISOString() })
+      .update({
+        title: title.trim(),
+        content: sanitizeHtml(html),
+        youtube_video_id: videoId,
+        learning_objectives: cleanList(objectives, LIMITS.MAX_OBJECTIVES, LIMITS.OBJECTIVE_MAX),
+        subtopics: cleanList(subtopics, LIMITS.MAX_SUBTOPICS, LIMITS.SUBTOPIC_MAX),
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", topic.id);
     setSaving(false);
+
+    if (error) {
+      setSaveError(error.message);
+      return;
+    }
     setEditing(false);
     onSaved();
   }
@@ -187,7 +292,24 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
 
       {editing ? (
         <>
-          <RichTextEditor ref={editRef} initialContent={topic.content} placeholder="Topic content..." />
+          <ListEditor
+            label="Learning objectives"
+            items={objectives}
+            onChange={setObjectives}
+            placeholder="Students will be able to..."
+            max={LIMITS.MAX_OBJECTIVES}
+            maxLength={LIMITS.OBJECTIVE_MAX}
+          />
+          <ListEditor
+            label="Subtopics"
+            items={subtopics}
+            onChange={setSubtopics}
+            placeholder="e.g. Tree traversal"
+            max={LIMITS.MAX_SUBTOPICS}
+            maxLength={LIMITS.SUBTOPIC_MAX}
+          />
+          <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 14 }}>Notes</p>
+          <RichTextEditor ref={editRef} initialContent={topic.content} placeholder="Topic notes..." />
           <input
             placeholder="YouTube video link (optional)"
             value={videoUrl}
@@ -204,6 +326,7 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
         </>
       ) : (
         <>
+          <TopicOutline objectives={topic.learning_objectives} subtopics={topic.subtopics} />
           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
           <VideoEmbed videoId={topic.youtube_video_id} />
           <div className="action-row">

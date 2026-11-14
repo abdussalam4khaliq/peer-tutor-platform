@@ -7,7 +7,7 @@ import { quizPhase, PHASE_BADGE } from "@/lib/quiz";
 import { formatDate, formatDateTime, formatPoints } from "@/lib/format";
 
 export default async function CourseProgressPage({ params }) {
-  const { courseId } = params;
+  const { courseId } = await params;
   const supabase = await createClient();
 
   const {

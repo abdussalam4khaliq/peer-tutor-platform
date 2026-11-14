@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
 import { formatDateTime } from "@/lib/format";
 
 export default async function TutorQuizzesPage({ params }) {
-  const { courseId } = params;
+  const { courseId } = await params;
   const supabase = await createClient();
 
   const {

@@ -2,9 +2,10 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TopicManager from "@/components/topic-manager";
 import AppHeader from "@/components/app-header";
+import PlanView from "@/components/plan-view";
 
 export default async function ManageCourseContentPage({ params }) {
-  const { courseId } = params;
+  const { courseId } = await params;
   const supabase = await createClient();
 
   const {
@@ -73,11 +74,23 @@ export default async function ManageCourseContentPage({ params }) {
         </div>
       )}
 
+      {plan && ((plan.scheme_of_work || []).length > 0 || (plan.lesson_plan || []).length > 0) && (
+        <details className="card">
+          <summary style={{ cursor: "pointer", fontWeight: 600 }}>Your approved syllabus and lesson plan</summary>
+          <PlanView syllabus={plan.scheme_of_work} lessonPlan={plan.lesson_plan} />
+        </details>
+      )}
+
       <p>
         <a className="btn btn-outline btn-sm" href={`/tutor/courses/${course.id}/quizzes`}>Timed quizzes →</a>
       </p>
 
-      <TopicManager courseId={course.id} topics={topics || []} />
+      <TopicManager
+        courseId={course.id}
+        topics={topics || []}
+        syllabus={plan?.scheme_of_work || []}
+        lessonPlan={plan?.lesson_plan || []}
+      />
     </main>
   );
 }

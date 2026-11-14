@@ -7,7 +7,7 @@ import { quizPhase, PHASE_BADGE, KIND_LABEL } from "@/lib/quiz";
 import { formatDateTime, formatPoints } from "@/lib/format";
 
 export default async function QuizPage({ params }) {
-  const { id, quizId } = params;
+  const { id, quizId } = await params;
   const supabase = await createClient();
 
   const {

@@ -7,7 +7,7 @@ Live at https://virtualcoursemate.com.ng
 
 ## Stack
 
-- **Next.js 14** (App Router, plain JavaScript) deployed on Vercel
+- **Next.js 16** (App Router, plain JavaScript) on Cloudflare Workers via OpenNext (see `CLOUDFLARE.md`)
 - **Supabase**: Postgres + Row Level Security, Auth, Storage
 - **Paystack** for payments, **PostHog** for analytics, **web-push** for notifications
 
@@ -39,7 +39,7 @@ Open http://localhost:3000.
 - Timed tutor quizzes: availability window + per-student time limit, auto-marked and hand-marked questions, photo upload for written working
 - Student progress pages (`/progress`)
 - Forums, ratings, leaderboards, leagues, tournaments, referral credits
-- Wallet, withdrawals, tutor commissions, Paystack checkout
+- Payments: Paystack split checkout. Tutor and referrer shares go straight to their own verified bank accounts, so Coursemate never holds anyone's money. The Payouts page shows earnings and payout account details
 - Admin tools: applications, content review, reports, ledger, withdrawals, tutor compliance
 
 ## Database changes
@@ -49,5 +49,5 @@ and is run in the Supabase SQL Editor at the same time. See the README in that f
 
 ## Deploying
 
-Pushing to the main branch deploys through Vercel. Set the same environment
-variables from `.env.local.example` in the Vercel project settings.
+Deploys go to Cloudflare Workers (`npm run deploy`). See `CLOUDFLARE.md` for the
+setup and `.dev.vars.example` for the secrets the Worker needs.

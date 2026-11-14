@@ -1,0 +1,706 @@
+diff --git a/.env.local.example b/.env.local.example
+index df6dcb6..5014c49 100644
+--- a/.env.local.example
++++ b/.env.local.example
+@@ -1,5 +1,5 @@
+ # Copy this file to .env.local and fill in the real values.
+-# The same variables must be set in Vercel (Project Settings > Environment Variables).
++# On Cloudflare, secrets are set as described in CLOUDFLARE.md (see .dev.vars.example).
+ 
+ # --- Supabase (Project Settings > API) ---
+ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+diff --git a/README.md b/README.md
+index 9631fb5..1b8d62f 100644
+--- a/README.md
++++ b/README.md
+@@ -7,7 +7,7 @@ Live at https://virtualcoursemate.com.ng
+ 
+ ## Stack
+ 
+-- **Next.js 14** (App Router, plain JavaScript) deployed on Vercel
++- **Next.js 16** (App Router, plain JavaScript) on Cloudflare Workers via OpenNext (see `CLOUDFLARE.md`)
+ - **Supabase**: Postgres + Row Level Security, Auth, Storage
+ - **Paystack** for payments, **PostHog** for analytics, **web-push** for notifications
+ 
+@@ -39,7 +39,7 @@ Open http://localhost:3000.
+ - Timed tutor quizzes: availability window + per-student time limit, auto-marked and hand-marked questions, photo upload for written working
+ - Student progress pages (`/progress`)
+ - Forums, ratings, leaderboards, leagues, tournaments, referral credits
+-- Wallet, withdrawals, tutor commissions, Paystack checkout
++- Payments: Paystack split checkout. Tutor and referrer shares go straight to their own verified bank accounts, so Coursemate never holds anyone's money. The Payouts page shows earnings and payout account details
+ - Admin tools: applications, content review, reports, ledger, withdrawals, tutor compliance
+ 
+ ## Database changes
+@@ -49,5 +49,5 @@ and is run in the Supabase SQL Editor at the same time. See the README in that f
+ 
+ ## Deploying
+ 
+-Pushing to the main branch deploys through Vercel. Set the same environment
+-variables from `.env.local.example` in the Vercel project settings.
++Deploys go to Cloudflare Workers (`npm run deploy`). See `CLOUDFLARE.md` for the
++setup and `.dev.vars.example` for the secrets the Worker needs.
+diff --git a/app/courses/[id]/page.js b/app/courses/[id]/page.js
+index 528d347..fda2fae 100644
+--- a/app/courses/[id]/page.js
++++ b/app/courses/[id]/page.js
+@@ -6,12 +6,15 @@ import AppHeader from "@/components/app-header";
+ import RatingWidget from "@/components/rating-widget";
+ import VideoEmbed from "@/components/video-embed";
+ import CourseReader from "@/components/course-reader";
++import TopicOutline from "@/components/topic-outline";
+ import { computeTopicStates, pickResumeIndex } from "@/lib/topic-lock";
+ import { quizPhase, PHASE_BADGE } from "@/lib/quiz";
+ import { formatDate, formatDateTime } from "@/lib/format";
+ 
+ export default async function CourseDetailPage({ params, searchParams }) {
+-  const { id } = params;
++  // Next 15+/16: params and searchParams are promises
++  const { id } = await params;
++  const query = (await searchParams) || {};
+   const supabase = await createClient();
+ 
+   const {
+@@ -42,7 +45,7 @@ export default async function CourseDetailPage({ params, searchParams }) {
+ 
+   const { data: topics } = await supabase
+     .from("topics")
+-    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count, youtube_video_id, hidden")
++    .select("id, title, content, order_index, questions_per_test, question_count, avg_rating, rating_count, youtube_video_id, hidden, learning_objectives, subtopics")
+     .eq("course_id", id)
+     .order("order_index", { ascending: true });
+ 
+@@ -79,8 +82,8 @@ export default async function CourseDetailPage({ params, searchParams }) {
+   const states = computeTopicStates(topicList, passedSet);
+ 
+   let initialIndex = pickResumeIndex(states);
+-  const wanted = searchParams?.topic;
+-  const after = searchParams?.after;
++  const wanted = query.topic;
++  const after = query.after;
+   if (wanted) {
+     const i = topicList.findIndex((t) => t.id === wanted);
+     if (i >= 0) initialIndex = i;
+@@ -115,6 +118,7 @@ export default async function CourseDetailPage({ params, searchParams }) {
+             {topic.title}
+             {topic.hidden && <span className="badge badge-amber" style={{ marginLeft: 8 }}>Hidden from students</span>}
+           </h2>
++          <TopicOutline objectives={topic.learning_objectives} subtopics={topic.subtopics} />
+           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
+           <VideoEmbed videoId={topic.youtube_video_id} />
+           {state.hasTest && (
+@@ -179,6 +183,10 @@ export default async function CourseDetailPage({ params, searchParams }) {
+ 
+       {entitled && <p><a href={`/courses/${course.id}/forum`}>Go to course forum →</a></p>}
+ 
++      {enrollment && !isAdmin && entitled && (
++        <p><a href="/payment-info">Pay or renew →</a></p>
++      )}
++
+       {onTrial && (
+         <p><span className="badge badge-green">Free trial until {formatDate(enrollment.trial_ends_at)}</span></p>
+       )}
+diff --git a/app/courses/[id]/quizzes/[quizId]/page.js b/app/courses/[id]/quizzes/[quizId]/page.js
+index 953c8ab..3a5872c 100644
+--- a/app/courses/[id]/quizzes/[quizId]/page.js
++++ b/app/courses/[id]/quizzes/[quizId]/page.js
+@@ -7,7 +7,7 @@ import { quizPhase, PHASE_BADGE, KIND_LABEL } from "@/lib/quiz";
+ import { formatDateTime, formatPoints } from "@/lib/format";
+ 
+ export default async function QuizPage({ params }) {
+-  const { id, quizId } = params;
++  const { id, quizId } = await params;
+   const supabase = await createClient();
+ 
+   const {
+diff --git a/app/courses/[id]/topics/[topicId]/test/page.js b/app/courses/[id]/topics/[topicId]/test/page.js
+index 6bbc8f0..ac7e555 100644
+--- a/app/courses/[id]/topics/[topicId]/test/page.js
++++ b/app/courses/[id]/topics/[topicId]/test/page.js
+@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
+ import TestRunner from "./test-runner";
+ 
+ export default async function TestPage({ params }) {
+-  const { id, topicId } = params;
++  const { id, topicId } = await params;
+   const supabase = await createClient();
+ 
+   const {
+diff --git a/app/dashboard/page.js b/app/dashboard/page.js
+index 078ae4e..fd86b87 100644
+--- a/app/dashboard/page.js
++++ b/app/dashboard/page.js
+@@ -90,9 +90,10 @@ export default async function DashboardPage() {
+ 
+   const { data: credits } = await supabase
+     .from("referral_credits")
+-    .select("amount")
++    .select("amount, reward_days")
+     .eq("referrer_id", user.id);
+   const totalEarned = (credits || []).reduce((sum, c) => sum + Number(c.amount), 0);
++  const totalDays = (credits || []).reduce((sum, c) => sum + Number(c.reward_days || 0), 0);
+ 
+   const isAdmin = profile.role === "admin" || profile.role === "super_admin";
+   const isTutor = profile.role === "tutor";
+@@ -127,7 +128,7 @@ export default async function DashboardPage() {
+         {isStudent && <a className="btn btn-outline btn-sm" href="/leagues">Leagues</a>}
+         {isTutor && <a className="btn btn-outline btn-sm" href="/tutor/leaderboards">Leaderboard</a>}
+         {isTutor && <a className="btn btn-outline btn-sm" href="/tutor/leagues">Leagues</a>}
+-        <a className="btn btn-outline btn-sm" href="/wallet">Wallet</a>
++        <a className="btn btn-outline btn-sm" href="/payouts">Payouts</a>
+       </div>
+ 
+       {(isStudent || isTutor) && (
+@@ -158,10 +159,19 @@ export default async function DashboardPage() {
+             {profile.referral_code || "—"}
+           </span>
+         </div>
++        {(isTutor || totalEarned > 0) && (
++          <div className="field-row">
++            <span className="field-row__label">Cash bonuses</span>
++            <span className="field-row__value">₦{totalEarned}</span>
++          </div>
++        )}
+         <div className="field-row">
+-          <span className="field-row__label">Total earned</span>
+-          <span className="field-row__value">₦{totalEarned}</span>
++          <span className="field-row__label">Bonus access days earned</span>
++          <span className="field-row__value">{totalDays}</span>
+         </div>
++        <p style={{ fontSize: 13, margin: "8px 0 0" }}>
++          When someone you refer subscribes, tutors get a cash bonus paid straight to their payout account. Everyone else gets extra days of access.
++        </p>
+       </div>
+       <ReferralShare referralCode={profile.referral_code} />
+     </main>
+diff --git a/app/globals.css b/app/globals.css
+index dfbafa9..cb0fcc6 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -1055,6 +1055,76 @@ label {
+     flex-direction: row;
+   }
+ }
++
++/* tables and topic outline */
++.prose table,
++.rte__content table {
++  border-collapse: collapse;
++  margin: 12px 0;
++  max-width: 100%;
++}
++.prose table {
++  display: block;
++  overflow-x: auto;
++}
++.prose th,
++.prose td,
++.rte__content th,
++.rte__content td {
++  border: 1px solid var(--rule);
++  padding: 6px 10px;
++  text-align: left;
++  vertical-align: top;
++  min-width: 70px;
++}
++.prose th,
++.rte__content th {
++  background: var(--moss-light);
++  font-weight: 600;
++}
++.prose td p,
++.prose th p,
++.rte__content td p,
++.rte__content th p {
++  margin: 0;
++}
++.rte__content .selectedCell {
++  background: #dfe9e3;
++}
++.rte__toolbar--table {
++  border-top: 1px dashed var(--rule);
++}
++.rte__toolbar-label {
++  align-self: center;
++  color: var(--ink-600);
++  font-size: 12px;
++  margin-right: 4px;
++}
++.topic-outline {
++  background: var(--moss-light);
++  border-left: 3px solid var(--moss);
++  border-radius: 6px;
++  margin: 8px 0 14px;
++  padding: 10px 14px;
++}
++.topic-outline__title {
++  color: var(--moss);
++  font-weight: 600;
++  margin: 8px 0 2px;
++}
++.topic-outline__title:first-child {
++  margin-top: 0;
++}
++.topic-outline__lede {
++  color: var(--ink-600);
++  font-size: 13px;
++  margin: 0 0 4px;
++}
++.topic-outline ul {
++  margin: 0 0 4px;
++  padding-left: 20px;
++}
++
+ /* ---------- course reader: one topic per page, left/right ---------- */
+ 
+ .reader {
+diff --git a/app/progress/[courseId]/page.js b/app/progress/[courseId]/page.js
+index 56f79e5..d7c61fd 100644
+--- a/app/progress/[courseId]/page.js
++++ b/app/progress/[courseId]/page.js
+@@ -7,7 +7,7 @@ import { quizPhase, PHASE_BADGE } from "@/lib/quiz";
+ import { formatDate, formatDateTime, formatPoints } from "@/lib/format";
+ 
+ export default async function CourseProgressPage({ params }) {
+-  const { courseId } = params;
++  const { courseId } = await params;
+   const supabase = await createClient();
+ 
+   const {
+diff --git a/app/tutor/courses/[courseId]/page.js b/app/tutor/courses/[courseId]/page.js
+index b435734..28f0e41 100644
+--- a/app/tutor/courses/[courseId]/page.js
++++ b/app/tutor/courses/[courseId]/page.js
+@@ -2,9 +2,10 @@ import { redirect, notFound } from "next/navigation";
+ import { createClient } from "@/lib/supabase/server";
+ import TopicManager from "@/components/topic-manager";
+ import AppHeader from "@/components/app-header";
++import PlanView from "@/components/plan-view";
+ 
+ export default async function ManageCourseContentPage({ params }) {
+-  const { courseId } = params;
++  const { courseId } = await params;
+   const supabase = await createClient();
+ 
+   const {
+@@ -73,11 +74,23 @@ export default async function ManageCourseContentPage({ params }) {
+         </div>
+       )}
+ 
++      {plan && ((plan.scheme_of_work || []).length > 0 || (plan.lesson_plan || []).length > 0) && (
++        <details className="card">
++          <summary style={{ cursor: "pointer", fontWeight: 600 }}>Your approved syllabus and lesson plan</summary>
++          <PlanView syllabus={plan.scheme_of_work} lessonPlan={plan.lesson_plan} />
++        </details>
++      )}
++
+       <p>
+         <a className="btn btn-outline btn-sm" href={`/tutor/courses/${course.id}/quizzes`}>Timed quizzes →</a>
+       </p>
+ 
+-      <TopicManager courseId={course.id} topics={topics || []} />
++      <TopicManager
++        courseId={course.id}
++        topics={topics || []}
++        syllabus={plan?.scheme_of_work || []}
++        lessonPlan={plan?.lesson_plan || []}
++      />
+     </main>
+   );
+ }
+\ No newline at end of file
+diff --git a/app/tutor/courses/[courseId]/quizzes/[quizId]/edit/page.js b/app/tutor/courses/[courseId]/quizzes/[quizId]/edit/page.js
+index a6e565a..74a7465 100644
+--- a/app/tutor/courses/[courseId]/quizzes/[quizId]/edit/page.js
++++ b/app/tutor/courses/[courseId]/quizzes/[quizId]/edit/page.js
+@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
+ import QuizBuilder from "../../quiz-builder";
+ 
+ export default async function EditQuizPage({ params }) {
+-  const { courseId, quizId } = params;
++  const { courseId, quizId } = await params;
+   const supabase = await createClient();
+ 
+   const {
+diff --git a/app/tutor/courses/[courseId]/quizzes/[quizId]/page.js b/app/tutor/courses/[courseId]/quizzes/[quizId]/page.js
+index 24b220c..777d898 100644
+--- a/app/tutor/courses/[courseId]/quizzes/[quizId]/page.js
++++ b/app/tutor/courses/[courseId]/quizzes/[quizId]/page.js
+@@ -6,7 +6,7 @@ import { formatDateTime, formatPoints } from "@/lib/format";
+ import { KIND_LABEL } from "@/lib/quiz";
+ 
+ export default async function QuizSubmissionsPage({ params }) {
+-  const { courseId, quizId } = params;
++  const { courseId, quizId } = await params;
+   const supabase = await createClient();
+ 
+   const {
+diff --git a/app/tutor/courses/[courseId]/quizzes/new/page.js b/app/tutor/courses/[courseId]/quizzes/new/page.js
+index 2c1e23e..ec2197c 100644
+--- a/app/tutor/courses/[courseId]/quizzes/new/page.js
++++ b/app/tutor/courses/[courseId]/quizzes/new/page.js
+@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
+ import QuizBuilder from "../quiz-builder";
+ 
+ export default async function NewQuizPage({ params }) {
+-  const { courseId } = params;
++  const { courseId } = await params;
+   const supabase = await createClient();
+ 
+   const {
+diff --git a/app/tutor/courses/[courseId]/quizzes/page.js b/app/tutor/courses/[courseId]/quizzes/page.js
+index 11488ce..d1d55db 100644
+--- a/app/tutor/courses/[courseId]/quizzes/page.js
++++ b/app/tutor/courses/[courseId]/quizzes/page.js
+@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
+ import { formatDateTime } from "@/lib/format";
+ 
+ export default async function TutorQuizzesPage({ params }) {
+-  const { courseId } = params;
++  const { courseId } = await params;
+   const supabase = await createClient();
+ 
+   const {
+diff --git a/components/app-header.js b/components/app-header.js
+index 77f27f8..011ea1d 100644
+--- a/components/app-header.js
++++ b/components/app-header.js
+@@ -27,11 +27,15 @@ const LINKS = (profile) => {
+ 
+   links.push(
+     { href: "/tournaments", label: "Tournaments" },
+-    { href: "/wallet", label: "Wallet" },
++    { href: "/payouts", label: "Payouts" },
+     { href: "/report", label: "Report a user" },
+     { href: "/report-bug", label: "Report a bug" }
+   );
+ 
++  if (profile?.role !== "admin" && profile?.role !== "super_admin") {
++    links.splice(1, 0, { href: "/payment-info", label: "Pay / renew" });
++  }
++
+   return links;
+ };
+ 
+diff --git a/components/topic-manager.js b/components/topic-manager.js
+index a292b3f..f512704 100644
+--- a/components/topic-manager.js
++++ b/components/topic-manager.js
+@@ -5,31 +5,68 @@ import { useRouter } from "next/navigation";
+ import { createClient } from "@/lib/supabase/client";
+ import RichTextEditor from "@/components/rich-text-editor";
+ import VideoEmbed from "@/components/video-embed";
++import ListEditor from "@/components/list-editor";
++import TopicOutline from "@/components/topic-outline";
+ import { sanitizeHtml } from "@/lib/sanitize";
+ import { extractYouTubeId } from "@/lib/youtube";
++import { LIMITS, cleanLine, cleanList, normalizeSyllabus, sameTitle, topicDraftFromPlan } from "@/lib/syllabus";
+ 
+-export default function TopicManager({ courseId, topics }) {
++const CUSTOM = "__custom__";
++
++export default function TopicManager({ courseId, topics, syllabus = [], lessonPlan = [] }) {
+   const router = useRouter();
+   const supabase = createClient();
++  const syllabusTopics = normalizeSyllabus(syllabus);
+ 
+-  const [newTitle, setNewTitle] = useState("");
++  const [choice, setChoice] = useState(""); // a syllabus title, CUSTOM, or ""
++  const [customTitle, setCustomTitle] = useState("");
++  const [objectives, setObjectives] = useState([]);
++  const [subtopics, setSubtopics] = useState([]);
+   const [newVideoUrl, setNewVideoUrl] = useState("");
+   const [busy, setBusy] = useState(false);
+   const [busyId, setBusyId] = useState(null);
+   const [error, setError] = useState(null);
+   const newEditorRef = useRef(null);
++  const submittingRef = useRef(false);
++
++  // Syllabus topics that don't have a topic page yet
++  const used = topics.map((t) => t.syllabus_topic || t.title);
++  const available = syllabusTopics.filter((s) => !used.some((u) => sameTitle(u, s.title)));
++  const hasSyllabus = syllabusTopics.length > 0;
++  const usingCustom = !hasSyllabus || choice === CUSTOM;
++  const title = usingCustom ? cleanLine(customTitle, LIMITS.TITLE_MAX) : choice;
+ 
+   function refresh() {
+     router.refresh();
+   }
+ 
++  function onChoose(value) {
++    setChoice(value);
++    setError(null);
++    if (value && value !== CUSTOM) {
++      // Fill in what you planned for this topic. You can still change it.
++      const draft = topicDraftFromPlan(lessonPlan, value);
++      setObjectives(draft.objectives);
++      setSubtopics(draft.subtopics);
++    }
++  }
++
+   async function addTopic(e) {
+     e.preventDefault();
++    if (submittingRef.current) return;
+     setError(null);
+ 
+     const html = newEditorRef.current?.getHTML() || "";
+-    if (!newTitle.trim() || newEditorRef.current?.isEmpty()) {
+-      setError("Please add a title and some content.");
++    if (!title) {
++      setError(hasSyllabus ? "Choose a syllabus topic, or pick \"Other\" and type a title." : "Please add a title.");
++      return;
++    }
++    if (objectives.length === 0) {
++      setError("Add at least one learning objective, so students know what they'll learn.");
++      return;
++    }
++    if (newEditorRef.current?.isEmpty()) {
++      setError("Please add the notes for this topic.");
+       return;
+     }
+ 
+@@ -42,22 +79,30 @@ export default function TopicManager({ courseId, topics }) {
+       }
+     }
+ 
++    submittingRef.current = true;
+     setBusy(true);
+-    const { error } = await supabase.from("topics").insert({
++    const { error: insertError } = await supabase.from("topics").insert({
+       course_id: courseId,
+-      title: newTitle.trim(),
++      title,
+       content: sanitizeHtml(html),
+       order_index: topics.length ? Math.max(...topics.map((t) => t.order_index)) + 1 : 0,
+       youtube_video_id: videoId,
++      learning_objectives: cleanList(objectives, LIMITS.MAX_OBJECTIVES, LIMITS.OBJECTIVE_MAX),
++      subtopics: cleanList(subtopics, LIMITS.MAX_SUBTOPICS, LIMITS.SUBTOPIC_MAX),
++      syllabus_topic: usingCustom ? null : choice,
+     });
+     setBusy(false);
++    submittingRef.current = false;
+ 
+-    if (error) {
+-      setError(error.message);
++    if (insertError) {
++      setError(insertError.message);
+       return;
+     }
+ 
+-    setNewTitle("");
++    setChoice("");
++    setCustomTitle("");
++    setObjectives([]);
++    setSubtopics([]);
+     setNewVideoUrl("");
+     newEditorRef.current?.clear();
+     refresh();
+@@ -89,13 +134,57 @@ export default function TopicManager({ courseId, topics }) {
+       <div className="card">
+         <form onSubmit={addTopic}>
+           <h3 style={{ margin: "0 0 10px" }}>Add a topic</h3>
+-          <input
+-            placeholder="Topic title"
+-            value={newTitle}
+-            onChange={(e) => setNewTitle(e.target.value)}
+-            style={{ marginBottom: 10 }}
+-          />
+-          <RichTextEditor ref={newEditorRef} placeholder="Write the topic content here..." />
++
++          {hasSyllabus && (
++            <select value={choice} onChange={(e) => onChoose(e.target.value)} style={{ marginBottom: 10 }}>
++              <option value="">Choose a topic from your syllabus...</option>
++              {available.map((s) => (
++                <option key={s.title} value={s.title}>{s.title}</option>
++              ))}
++              <option value={CUSTOM}>Other (not in my syllabus)</option>
++            </select>
++          )}
++          {hasSyllabus && available.length === 0 && (
++            <p style={{ fontSize: 13, color: "var(--moss)", margin: "0 0 10px" }}>
++              Every syllabus topic now has a page. You can still add extra topics with &quot;Other&quot;.
++            </p>
++          )}
++
++          {usingCustom && (
++            <input
++              placeholder="Topic title"
++              value={customTitle}
++              maxLength={LIMITS.TITLE_MAX}
++              onChange={(e) => setCustomTitle(e.target.value)}
++              style={{ marginBottom: 10 }}
++            />
++          )}
++
++          {(title || !hasSyllabus) && (
++            <>
++              <ListEditor
++                label="Learning objectives"
++                hint="Shown to students first: what they will be able to do after this topic."
++                items={objectives}
++                onChange={setObjectives}
++                placeholder="Students will be able to..."
++                max={LIMITS.MAX_OBJECTIVES}
++                maxLength={LIMITS.OBJECTIVE_MAX}
++              />
++              <ListEditor
++                label="Subtopics"
++                hint="The parts this topic covers (optional)."
++                items={subtopics}
++                onChange={setSubtopics}
++                placeholder="e.g. Tree traversal"
++                max={LIMITS.MAX_SUBTOPICS}
++                maxLength={LIMITS.SUBTOPIC_MAX}
++              />
++            </>
++          )}
++
++          <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 14 }}>Notes</p>
++          <RichTextEditor ref={newEditorRef} placeholder="Write the topic notes here..." />
+           <input
+             placeholder="YouTube video link (optional)"
+             value={newVideoUrl}
+@@ -132,9 +221,9 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
+   const supabase = createClient();
+   const [editing, setEditing] = useState(false);
+   const [title, setTitle] = useState(topic.title);
+-  const [videoUrl, setVideoUrl] = useState(
+-    topic.youtube_video_id ? `https://youtu.be/${topic.youtube_video_id}` : ""
+-  );
++  const [objectives, setObjectives] = useState(Array.isArray(topic.learning_objectives) ? topic.learning_objectives : []);
++  const [subtopics, setSubtopics] = useState(Array.isArray(topic.subtopics) ? topic.subtopics : []);
++  const [videoUrl, setVideoUrl] = useState(topic.youtube_video_id ? `https://youtu.be/${topic.youtube_video_id}` : "");
+   const [saving, setSaving] = useState(false);
+   const [saveError, setSaveError] = useState(null);
+   const editRef = useRef(null);
+@@ -150,14 +239,30 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
+         return;
+       }
+     }
++    if (!title.trim()) {
++      setSaveError("The topic needs a title.");
++      return;
++    }
+ 
+     setSaving(true);
+     const html = editRef.current?.getHTML() || "";
+-    await supabase
++    const { error } = await supabase
+       .from("topics")
+-      .update({ title, content: sanitizeHtml(html), youtube_video_id: videoId, updated_at: new Date().toISOString() })
++      .update({
++        title: title.trim(),
++        content: sanitizeHtml(html),
++        youtube_video_id: videoId,
++        learning_objectives: cleanList(objectives, LIMITS.MAX_OBJECTIVES, LIMITS.OBJECTIVE_MAX),
++        subtopics: cleanList(subtopics, LIMITS.MAX_SUBTOPICS, LIMITS.SUBTOPIC_MAX),
++        updated_at: new Date().toISOString(),
++      })
+       .eq("id", topic.id);
+     setSaving(false);
++
++    if (error) {
++      setSaveError(error.message);
++      return;
++    }
+     setEditing(false);
+     onSaved();
+   }
+@@ -187,7 +292,24 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
+ 
+       {editing ? (
+         <>
+-          <RichTextEditor ref={editRef} initialContent={topic.content} placeholder="Topic content..." />
++          <ListEditor
++            label="Learning objectives"
++            items={objectives}
++            onChange={setObjectives}
++            placeholder="Students will be able to..."
++            max={LIMITS.MAX_OBJECTIVES}
++            maxLength={LIMITS.OBJECTIVE_MAX}
++          />
++          <ListEditor
++            label="Subtopics"
++            items={subtopics}
++            onChange={setSubtopics}
++            placeholder="e.g. Tree traversal"
++            max={LIMITS.MAX_SUBTOPICS}
++            maxLength={LIMITS.SUBTOPIC_MAX}
++          />
++          <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 14 }}>Notes</p>
++          <RichTextEditor ref={editRef} initialContent={topic.content} placeholder="Topic notes..." />
+           <input
+             placeholder="YouTube video link (optional)"
+             value={videoUrl}
+@@ -204,6 +326,7 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
+         </>
+       ) : (
+         <>
++          <TopicOutline objectives={topic.learning_objectives} subtopics={topic.subtopics} />
+           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
+           <VideoEmbed videoId={topic.youtube_video_id} />
+           <div className="action-row">
+@@ -216,4 +339,4 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
+       )}
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/supabase/migrations/20_topic_lock_chain.sql b/supabase/migrations/29_topic_lock_chain.sql
+similarity index 99%
+rename from supabase/migrations/20_topic_lock_chain.sql
+rename to supabase/migrations/29_topic_lock_chain.sql
+index bdbbde1..ffe9414 100644
+--- a/supabase/migrations/20_topic_lock_chain.sql
++++ b/supabase/migrations/29_topic_lock_chain.sql
+@@ -1,5 +1,5 @@
+ -- ============================================================
+--- 20: Topic lock chain fix
++-- 29: Topic lock chain fix
+ -- Before: a topic was only locked if the topic directly before it had an
+ -- unpassed test. A topic WITHOUT a test in the middle broke the chain, so
+ -- the topic after it opened even though earlier tests were unpassed.
+diff --git a/supabase/migrations/21_timed_quizzes.sql b/supabase/migrations/30_timed_quizzes.sql
+similarity index 99%
+rename from supabase/migrations/21_timed_quizzes.sql
+rename to supabase/migrations/30_timed_quizzes.sql
+index bb1f4b3..bf6ebb7 100644
+--- a/supabase/migrations/21_timed_quizzes.sql
++++ b/supabase/migrations/30_timed_quizzes.sql
+@@ -1,5 +1,5 @@
+ -- ============================================================
+--- 21: Timed tutor quizzes
++-- 30: Timed tutor quizzes
+ --
+ -- Tutors host quizzes for their course with an availability window
+ -- (opens_at -> closes_at) and a per-student time limit (duration_minutes).
+diff --git a/supabase/migrations/README.md b/supabase/migrations/README.md
+index a50172b..92d73c9 100644
+--- a/supabase/migrations/README.md
++++ b/supabase/migrations/README.md
+@@ -38,7 +38,7 @@ right now for:
+ ## Going forward
+ 
+ **Every new SQL block goes into a new numbered file** in this
+-folder (the next one is `22_...`) **at the same time**
++folder (the next one is `31_...`) **at the same time**
+ it's run in Supabase — not reconstructed later. This keeps the two in sync
+ without ever needing another big reconstruction like this one.
+ 
+@@ -66,5 +66,14 @@ without ever needing another big reconstruction like this one.
+ | `17_Lesson_plans.sql` | Tutor lesson plans, posting schedule and compliance |
+ | `18_bundles.sql` | `payment_plans` and bundle payments |
+ | `19_paystack_payments.sql` | Paystack `payments` table and completion functions |
+-| `20_topic_lock_chain.sql` | Topic lock now checks every earlier test (`topic_chain_open()`); fixes the ambiguous `current_streak` error on repeat test submissions |
+-| `21_timed_quizzes.sql` | Timed tutor quizzes: tables, RLS, `quiz-answers` storage bucket and quiz RPCs |
++| `20_payment_admin_refunds.sql` | Payment admin tools, Paystack fees in the ledger, refunds and disputes |
++| `21_security_hardening.sql` | Locks down profile role/referral fields and self-created enrollments |
++| `22_recurring_referrals.sql` | Recurring referral bonuses with a per-referrer cap |
++| `24_payout_accounts.sql` | Verified payout accounts (additive) |
++| `24b_lock_payout_details_AT_CUTOVER.sql` | Locks payout details. Run only when the new site is live |
++| `26_syllabus_and_topic_details.sql` | Syllabus/lesson-plan structure, topic learning objectives and subtopics |
++| `27_split_payments.sql` | Split payments: tutor and referrer shares go straight to their bank accounts |
++| `27b_disable_wallet_AT_CUTOVER.sql` | Disables the wallet and withdrawals. Run at cutover |
++| `28_referral_days_and_fixes.sql` | Referral-days rule and fixes on top of 27 |
++| `29_topic_lock_chain.sql` | Topic lock checks every earlier test (`topic_chain_open()`); fixes the ambiguous `current_streak` error on repeat test submissions |
++| `30_timed_quizzes.sql` | Timed tutor quizzes: tables, RLS, `quiz-answers` storage bucket and quiz RPCs |

@@ -4,7 +4,7 @@ import AppHeader from "@/components/app-header";
 import QuizBuilder from "../quiz-builder";
 
 export default async function NewQuizPage({ params }) {
-  const { courseId } = params;
+  const { courseId } = await params;
   const supabase = await createClient();
 
   const {

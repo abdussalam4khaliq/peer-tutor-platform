@@ -6,7 +6,7 @@ import { formatDateTime, formatPoints } from "@/lib/format";
 import { KIND_LABEL } from "@/lib/quiz";
 
 export default async function QuizSubmissionsPage({ params }) {
-  const { courseId, quizId } = params;
+  const { courseId, quizId } = await params;
   const supabase = await createClient();
 
   const {

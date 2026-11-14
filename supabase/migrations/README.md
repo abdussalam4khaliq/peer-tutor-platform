@@ -38,7 +38,7 @@ right now for:
 ## Going forward
 
 **Every new SQL block goes into a new numbered file** in this
-folder (the next one is `22_...`) **at the same time**
+folder (the next one is `31_...`) **at the same time**
 it's run in Supabase — not reconstructed later. This keeps the two in sync
 without ever needing another big reconstruction like this one.
 
@@ -66,5 +66,14 @@ without ever needing another big reconstruction like this one.
 | `17_Lesson_plans.sql` | Tutor lesson plans, posting schedule and compliance |
 | `18_bundles.sql` | `payment_plans` and bundle payments |
 | `19_paystack_payments.sql` | Paystack `payments` table and completion functions |
-| `20_topic_lock_chain.sql` | Topic lock now checks every earlier test (`topic_chain_open()`); fixes the ambiguous `current_streak` error on repeat test submissions |
-| `21_timed_quizzes.sql` | Timed tutor quizzes: tables, RLS, `quiz-answers` storage bucket and quiz RPCs |
+| `20_payment_admin_refunds.sql` | Payment admin tools, Paystack fees in the ledger, refunds and disputes |
+| `21_security_hardening.sql` | Locks down profile role/referral fields and self-created enrollments |
+| `22_recurring_referrals.sql` | Recurring referral bonuses with a per-referrer cap |
+| `24_payout_accounts.sql` | Verified payout accounts (additive) |
+| `24b_lock_payout_details_AT_CUTOVER.sql` | Locks payout details. Run only when the new site is live |
+| `26_syllabus_and_topic_details.sql` | Syllabus/lesson-plan structure, topic learning objectives and subtopics |
+| `27_split_payments.sql` | Split payments: tutor and referrer shares go straight to their bank accounts |
+| `27b_disable_wallet_AT_CUTOVER.sql` | Disables the wallet and withdrawals. Run at cutover |
+| `28_referral_days_and_fixes.sql` | Referral-days rule and fixes on top of 27 |
+| `29_topic_lock_chain.sql` | Topic lock checks every earlier test (`topic_chain_open()`); fixes the ambiguous `current_streak` error on repeat test submissions |
+| `30_timed_quizzes.sql` | Timed tutor quizzes: tables, RLS, `quiz-answers` storage bucket and quiz RPCs |
