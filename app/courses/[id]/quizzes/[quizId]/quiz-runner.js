@@ -100,7 +100,8 @@ export default function QuizRunner({ attemptId, userId, title, deadlineIso, serv
       if (cancelled) return;
       answersRef.current = restored;
       setAnswers(restored);
-      setQuestions(qs);
+      // the RPC names its columns q_id, q_prompt, ...; give each question a plain `id` too
+      setQuestions((qs || []).map((row) => ({ ...row, id: row.q_id })));
     })();
     return () => {
       cancelled = true;

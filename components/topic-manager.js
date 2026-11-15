@@ -330,6 +330,9 @@ function TopicItem({ topic, isFirst, isLast, busy, onMoveUp, onMoveDown, onDelet
           <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(topic.content) }} />
           <VideoEmbed videoId={topic.youtube_video_id} />
           <div className="action-row">
+            <a className="btn btn-outline btn-sm" href={`/tutor/courses/${topic.course_id}/topics/${topic.id}/questions`}>
+              Test questions ({topic.question_count || 0})
+            </a>
             <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditing(true)} disabled={busy}>Edit</button>
             <button type="button" className="btn btn-danger btn-sm" onClick={onDelete} disabled={busy}>
               {busy ? "Deleting..." : "Delete"}

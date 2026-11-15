@@ -38,7 +38,7 @@ right now for:
 ## Going forward
 
 **Every new SQL block goes into a new numbered file** in this
-folder (the next one is `31_...`) **at the same time**
+folder (the next one is `32_...`) **at the same time**
 it's run in Supabase — not reconstructed later. This keeps the two in sync
 without ever needing another big reconstruction like this one.
 
@@ -77,3 +77,4 @@ without ever needing another big reconstruction like this one.
 | `28_referral_days_and_fixes.sql` | Referral-days rule and fixes on top of 27 |
 | `29_topic_lock_chain.sql` | Topic lock checks every earlier test (`topic_chain_open()`); fixes the ambiguous `current_streak` error on repeat test submissions |
 | `30_timed_quizzes.sql` | Timed tutor quizzes: tables, RLS, `quiz-answers` storage bucket and quiz RPCs |
+| `31_quiz_exp_and_notifications.sql` | Quiz EXP (rate and cap in `site_settings`), streak on submission, and quiz notifications sent by `pg_cron` every 5 minutes |

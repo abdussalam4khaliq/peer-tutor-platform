@@ -173,6 +173,10 @@ export default function QuizBuilder({ courseId, quiz, initialQuestions = [], loc
       </div>
 
       <h2>Questions</h2>
+      <p style={{ color: "var(--ink-600)", fontSize: 14, marginTop: 0 }}>
+        Students earn EXP for each question in proportion to the marks they get, once their quiz is fully marked.
+        Students are notified when the quiz is scheduled, opens, is about to close, and when their results are ready.
+      </p>
 
       {locked && (
         <div className="card" style={{ background: "#fff3d6" }}>

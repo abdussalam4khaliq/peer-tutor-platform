@@ -36,7 +36,7 @@ Open http://localhost:3000.
 - Courses by school / faculty / department, free preview of the first two topics, 7-day trial
 - Course reader: one topic per page (swipe, arrow keys or buttons) with a topics sidebar
 - Topic tests (CBT): 80% to pass, each test unlocks the next topic, retakes allowed (reduced EXP after the first pass)
-- Timed tutor quizzes: availability window + per-student time limit, auto-marked and hand-marked questions, photo upload for written working
+- Timed tutor quizzes: availability window + per-student time limit, auto-marked and hand-marked questions, photo upload for written working, EXP for results, and notifications (scheduled, open, closing soon, results ready, to mark)
 - Student progress pages (`/progress`)
 - Forums, ratings, leaderboards, leagues, tournaments, referral credits
 - Payments: Paystack split checkout. Tutor and referrer shares go straight to their own verified bank accounts, so Coursemate never holds anyone's money. The Payouts page shows earnings and payout account details

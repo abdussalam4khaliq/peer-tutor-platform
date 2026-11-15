@@ -60,7 +60,7 @@ export default async function QuizPage({ params }) {
   const loadAttempt = async () => {
     const { data } = await supabase
       .from("quiz_attempts")
-      .select("id, status, deadline_at, total_points, auto_points, manual_points, pending_manual")
+      .select("id, status, deadline_at, total_points, auto_points, manual_points, pending_manual, exp_awarded")
       .eq("quiz_id", quizId)
       .eq("student_id", user.id)
       .maybeSingle();
@@ -159,6 +159,7 @@ export default async function QuizPage({ params }) {
           <h2 style={{ marginTop: 0 }}>Your answers are in ✓</h2>
           <p style={{ margin: 0, color: "var(--ink-600)" }}>
             Marks and correct answers are shown after the quiz closes on {formatDateTime(quiz.closes_at)}.
+            You earn EXP once everything is marked.
           </p>
         </div>
       </main>
@@ -192,9 +193,15 @@ export default async function QuizPage({ params }) {
         {attempt.pending_manual > 0 ? (
           <p style={{ margin: 0, color: "var(--ink-600)" }}>
             {attempt.pending_manual} answer{attempt.pending_manual === 1 ? " is" : "s are"} still waiting to be marked by your tutor, so this score may go up.
+            You&apos;ll earn your EXP once everything is marked.
           </p>
         ) : (
           <p style={{ margin: 0, color: "var(--ink-600)" }}>Everything has been marked.</p>
+        )}
+        {Number(attempt.exp_awarded) > 0 && (
+          <p style={{ margin: "10px 0 0" }}>
+            <span className="badge badge-green">+{formatPoints(attempt.exp_awarded)} EXP earned</span>
+          </p>
         )}
       </div>
 

@@ -62,7 +62,7 @@ export default async function CourseProgressPage({ params }) {
   const { data: quizAttempts } = quizList.length
     ? await supabase
         .from("quiz_attempts")
-        .select("quiz_id, status, deadline_at, total_points, auto_points, manual_points, pending_manual")
+        .select("quiz_id, status, deadline_at, total_points, auto_points, manual_points, pending_manual, exp_awarded")
         .eq("student_id", user.id)
         .in("quiz_id", quizList.map((q) => q.id))
     : { data: [] };
@@ -151,6 +151,7 @@ export default async function CourseProgressPage({ params }) {
                   <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--ink-600)" }}>
                     Score {formatPoints(earned)} / {formatPoints(total)}
                     {total > 0 && ` (${Math.round((earned / total) * 100)}%)`}
+                    {Number(attempt.exp_awarded) > 0 && ` · +${formatPoints(attempt.exp_awarded)} EXP`}
                     {attempt.pending_manual > 0 && ` · ${attempt.pending_manual} answer${attempt.pending_manual === 1 ? "" : "s"} still being marked`}
                   </p>
                 )}

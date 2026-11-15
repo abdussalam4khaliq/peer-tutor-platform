@@ -27,10 +27,31 @@ const plexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://virtualcoursemate.com.ng";
+const SITE_TITLE = "Coursemate: learn from the classmate who already aced it";
+const SITE_DESCRIPTION =
+  "Coursemate turns real lecture notes from top students into structured, department-specific courses.";
+
 export const metadata = {
-  title: "Coursemate: learn from the classmate who already aced it",
-  description:
-    "Coursemate turns real lecture notes from top students into structured, department-specific courses.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  applicationName: "Coursemate",
+  openGraph: {
+    type: "website",
+    siteName: "Coursemate",
+    locale: "en_NG",
+    url: "/",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Coursemate: learn from the classmate who already aced it" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/og-image.png"],
+  },
 };
 
 export const viewport = {
