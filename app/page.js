@@ -120,7 +120,7 @@ export default function Home() {
             </div>
             <div className="feature">
               <p className="feature__title">Tutor-vetted content</p>
-              <p className="feature__body">Every tutor is reviewed by an admin before their course goes live so not just anyone can post.</p>
+              <p className="feature__body">Every tutor is reviewed by the admin before their course goes live so not just anyone can post.</p>
             </div>
             <div className="feature">
               <p className="feature__title">A real free preview</p>
