@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { initializeTransaction } from "@/lib/paystack";
 import { buildSplit, platformKeepsEnough } from "@/lib/split";
+import { SUPPORT_EMAIL } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -107,7 +108,7 @@ export async function POST(request) {
     // Only possible if commissions/bonuses are set too high for the plan price.
     console.error("Payout shares too large for plan", { plan: plan.id, amountKobo, shares });
     return NextResponse.json(
-      { error: "Payments for this plan are temporarily unavailable. Please contact support." },
+      { error: `Payments for this plan are temporarily unavailable. Please email ${SUPPORT_EMAIL}.` },
       { status: 500 }
     );
   }

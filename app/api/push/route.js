@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
+import { SITE_URL } from "@/lib/site";
 
 export async function POST(request) {
   const secret = request.headers.get("x-webhook-secret");
@@ -17,7 +18,7 @@ export async function POST(request) {
 
   try {
     webpush.setVapidDetails(
-      "mailto:support@virtualcoursemate.vercel.app",
+      SITE_URL,
       publicKey,
       privateKey
     );

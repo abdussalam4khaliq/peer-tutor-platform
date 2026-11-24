@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppHeader from "@/components/app-header";
 import AdminCourseFilter from "./admin-course-filter";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site";
 
 function AccessBadge({ label }) {
   if (label === "Trial ended — preview only") return <span className="badge badge-amber">{label}</span>;
@@ -60,7 +61,7 @@ export default async function CoursesPage() {
     return (
       <main className="app-container">
         <AppHeader profile={profile} />
-        <p>Your account doesn&apos;t have a department set. Please contact an admin.</p>
+        <p>Your account doesn&apos;t have a department set. Please email <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>.</p>
       </main>
     );
   }

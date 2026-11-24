@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site";
+
 export const metadata = { title: "Privacy Policy — Coursemate" };
 
 export default function PrivacyPage() {
@@ -5,14 +7,15 @@ export default function PrivacyPage() {
     <main className="app-container" style={{ maxWidth: 720 }}>
       <p><a href="/">← Back to Coursemate</a></p>
       <h1>Privacy Policy</h1>
-      <p className="lede-sm">Last updated: September 2026</p>
+      <p className="lede-sm">Last updated: November 2026</p>
 
       <div className="prose">
         <h2>1. What we collect</h2>
         <ul>
           <li><strong>Account info:</strong> name, email, school, department, and role</li>
           <li><strong>Activity data:</strong> courses taken, test scores, forum posts and ratings, EXP and streaks</li>
-          <li><strong>Payment-related info:</strong> bank name, account number, and account name — collected only if you request a withdrawal</li>
+          <li><strong>Payout details:</strong> bank name, account number, and account name — collected only when you set up a payout account to receive earnings</li>
+          <li><strong>Payment records:</strong> the reference, amount, plan, and status of payments you make. Your card or bank login details are handled by Paystack and are never stored by us</li>
           <li><strong>Profile content:</strong> a profile photo and short bio, if you choose to add them</li>
           <li><strong>Report evidence:</strong> screenshots you submit when reporting an account or a bug</li>
         </ul>
@@ -27,7 +30,7 @@ export default function PrivacyPage() {
         <h2>3. Who can see what</h2>
         <ul>
           <li>Your name and activity in forums/leaderboards are visible to other users at your school, as part of normal platform use</li>
-          <li>Your bank details are visible only to you and to Admins reviewing withdrawal requests — never to other students or Tutors</li>
+          <li>Your payout bank details are visible only to you and to Admins where needed to resolve a payout issue — never to other students or Tutors. They are shared with Paystack to verify the account and send your earnings to it</li>
           <li>Screenshots you submit in a report are visible only to you and Admins</li>
           <li>Admins can view account details as needed for moderation and support</li>
         </ul>
@@ -35,7 +38,8 @@ export default function PrivacyPage() {
         <h2>4. Where your data lives</h2>
         <p>
           Your data is stored with our infrastructure providers. These providers have their own security and
-          privacy practices as major infrastructure companies.
+          privacy practices as major infrastructure companies. Payments and payouts are processed by
+          Paystack, which handles card and bank details under its own privacy policy and security practices.
         </p>
 
         <h2>5. Security</h2>
@@ -48,8 +52,7 @@ export default function PrivacyPage() {
         <h2>6. Your rights</h2>
         <p>
           You can edit most of your profile information yourself at any time. To request correction
-          or deletion of other data, or to ask what data we hold about you, contact the support
-          contact listed on the platform.
+          or deletion of other data, or to ask what data we hold about you, email <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>.
         </p>
 
         <h2>7. Age</h2>
@@ -71,7 +74,7 @@ export default function PrivacyPage() {
         <p>We may update this policy as the platform evolves, and will update the date above when we do.</p>
 
         <h2>10. Contact</h2>
-        <p>Questions about this policy can be sent to the support contact listed on the platform.</p>
+        <p>Questions about this policy can be sent to <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>.</p>
       </div>
     </main>
   );

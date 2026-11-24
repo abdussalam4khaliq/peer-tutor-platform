@@ -27,7 +27,7 @@ Open http://localhost:3000.
 |---|---|
 | `app/` | Pages and routes (student, tutor, admin, API routes) |
 | `components/` | Shared UI (header, course reader, rating widget, editors) |
-| `lib/` | Supabase clients, Paystack, helpers (`topic-lock.js`, `quiz.js`, `progress.js`, `format.js`) |
+| `lib/` | Supabase clients, Paystack, helpers (`topic-lock.js`, `quiz.js`, `progress.js`, `format.js`, `site.js` for the support email and site URL) |
 | `supabase/migrations/` | The database schema. Read `supabase/migrations/README.md` first. |
 | `middleware.js` | Session refresh and redirect of suspended accounts |
 
@@ -38,6 +38,8 @@ Open http://localhost:3000.
 - Topic tests (CBT): 80% to pass, each test unlocks the next topic, retakes allowed (reduced EXP after the first pass)
 - Timed tutor quizzes: availability window + per-student time limit, auto-marked and hand-marked questions, photo upload for written working, EXP for results, and notifications (scheduled, open, closing soon, results ready, to mark)
 - Student progress pages (`/progress`)
+- Offline reading: course pages you open are saved on the device (service worker), with an offline page listing them. Quizzes, tests, payments and the forum are never cached, and saved pages are cleared at sign-out
+- Navigation split into Student and Tutor groups; dashboard with continue-learning, quizzes, notifications and a tutor panel
 - Forums, ratings, leaderboards, leagues, tournaments, referral credits
 - Payments: Paystack split checkout. Tutor and referrer shares go straight to their own verified bank accounts, so Coursemate never holds anyone's money. The Payouts page shows earnings and payout account details
 - Admin tools: applications, content review, reports, ledger, withdrawals, tutor compliance

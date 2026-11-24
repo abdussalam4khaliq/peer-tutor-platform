@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site";
+
 export const metadata = { title: "Terms of Service — Coursemate" };
 
 export default function TermsPage() {
@@ -5,7 +7,7 @@ export default function TermsPage() {
     <main className="app-container" style={{ maxWidth: 720 }}>
       <p><a href="/">← Back to Coursemate</a></p>
       <h1>Terms of Service</h1>
-      <p className="lede-sm">Last updated: September 2026</p>
+      <p className="lede-sm">Last updated: November 2026</p>
 
       <div className="prose">
         <h2>1. Who we are</h2>
@@ -33,16 +35,23 @@ export default function TermsPage() {
 
         <h2>4. Payments and access</h2>
         <p>
-          Courses are offered on a free preview (limited topics), a free trial period, and a paid
-          monthly subscription. Payment is currently collected by direct bank transfer, manually
-          confirmed by an Admin as there is no automated payment gateway at this time, and access is
-          granted at the Admin&apos;s discretion once a transfer is confirmed. Course pricing may change;
-          changes don&apos;t affect access already granted at a previous price.
+          Courses are offered with a free preview (limited topics), a free trial period, and paid
+          plans: monthly or semester access to one course or to a bundle of courses. The available
+          plans and their prices are shown on the payment page before you pay. Pricing may change;
+          changes don&apos;t affect access you have already paid for.
         </p>
         <p>
-          <strong>Refunds:</strong> because pricing is low and access is granted manually, payments are
-          generally non-refundable once access has been unlocked, except where required by law or at
-          an Admin&apos;s discretion for genuine errors (e.g. a duplicate payment).
+          Payments are made online through <strong>Paystack</strong>, our payment processor, using the
+          payment options Paystack offers at checkout. Coursemate never sees or stores your card
+          details or bank login. Your access unlocks automatically once Paystack confirms your
+          payment. If you were charged and your access hasn&apos;t unlocked, email{" "}
+          <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a> with your payment reference.
+        </p>
+        <p>
+          <strong>Refunds:</strong> payments are generally non-refundable once access has been
+          unlocked, except where required by law or for genuine errors (for example a duplicate
+          payment, or a payment that did not unlock your access). Approved refunds are returned to
+          your original payment method through Paystack, and the access that payment gave is removed.
         </p>
 
         <h2>5. EXP, streaks, leagues, and tournaments</h2>
@@ -50,20 +59,54 @@ export default function TermsPage() {
           EXP, streaks, league rankings, and tournament standings are gamified features with{" "}
           <strong>no cash value</strong> and are not redeemable for money. They exist to encourage
           engagement and may be adjusted, reset, or discontinued by us at any time without
-          compensation. This is separate from your <strong>wallet balance</strong> (see below), which
-          does represent real money owed to you.
+          compensation. They are separate from the money earned by Tutors and referrers, described
+          in the next section.
         </p>
 
-        <h2>6. Wallet, commissions, and withdrawals</h2>
+        <h2>6. How Tutors and referrers are paid (settlement)</h2>
         <p>
-          Tutors earn a commission for each paying student in their course, and any user earns a
-          one-time bonus for referring a student who becomes a paying subscriber. These amounts
-          accumulate in your in-app wallet and can be withdrawn, subject to a minimum withdrawal
-          amount, once you&apos;ve provided accurate bank account details. Withdrawals are processed
-          manually by an Admin via bank transfer and are not instant — we aim to process them
-          promptly but don&apos;t guarantee a specific timeframe. You&apos;re responsible for the accuracy of
-          the bank details you provide; we&apos;re not liable for funds sent to an incorrect account you
-          supplied.
+          <strong>Coursemate does not hold money on behalf of Tutors or referrers.</strong> 
+          Instead, every payment is split automatically by Paystack at the moment the student pays:
+        </p>
+        <ul>
+          <li>
+            <strong>Tutor commission:</strong> for each paying student in a Tutor&apos;s course, the
+            Tutor&apos;s commission is sent by Paystack directly to the Tutor&apos;s own bank account.
+          </li>
+          <li>
+            <strong>Referral rewards:</strong> when a student you referred pays, a Tutor&apos;s
+            referral bonus is sent to their bank account in the same way. Users who are not Tutors
+            receive extra days of access instead of cash.
+          </li>
+          <li>
+            <strong>Coursemate&apos;s share:</strong> Coursemate receives only its own platform share of
+            the payment. Paystack&apos;s processing fee is covered from Coursemate&apos;s share and is not
+            deducted from a Tutor&apos;s commission or referral bonus.
+          </li>
+        </ul>
+        <p>
+          <strong>Payout account:</strong> to be paid, a Tutor adds a bank account on the Payouts page.
+          We verify the account through Paystack before it is used, and a Paystack settlement account
+          is created for it. A Tutor who has not finished setting up a payout account cannot be paid,
+          so students are not able to pay for that Tutor&apos;s courses until they have; this is so that
+          no one&apos;s earnings are ever held by Coursemate. You are responsible for the accuracy of
+          the bank details you provide, and we are not liable for funds settled to an incorrect
+          account you supplied.
+        </p>
+        <p>
+          <strong>Timing:</strong> once a payment succeeds, Paystack settles your share to your bank
+          account according to Paystack&apos;s settlement schedule. Coursemate does not control
+          settlement timing. The Payouts page lists the payments that have been sent to you.
+        </p>
+        <p>
+          <strong>Refunds and reversals:</strong> if a payment is refunded or reversed, the commission
+          and referral reward linked to that payment are reversed as well.
+        </p>
+        
+        <p>
+          You are responsible for any taxes that apply to money you earn through Coursemate. Commission
+          and bonus amounts are set by us, are shown in the app, and may change; changes don&apos;t affect
+          payments already made.
         </p>
 
         <h2>7. Content and conduct</h2>
@@ -85,8 +128,7 @@ export default function TermsPage() {
         <p>
           Users may report accounts or content to Admins, optionally with screenshot evidence. Admins
           may suspend or ban accounts found to violate these Terms. Suspended or banned accounts lose
-          access to the platform but retain any wallet balance already earned, which can still be
-          withdrawn subject to normal processing.
+          access to the platform. Money already paid to your bank account is not affected.
         </p>
 
         <h2>9. No guarantee of outcomes</h2>
@@ -103,7 +145,7 @@ export default function TermsPage() {
         </p>
 
         <h2>11. Contact</h2>
-        <p>Questions about these Terms can be sent to the support contact listed on the platform.</p>
+        <p>Questions about these Terms can be sent to <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>.</p>
       </div>
     </main>
   );

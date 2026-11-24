@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "@/app/dashboard/sign-out-button";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site";
 
 export default async function SuspendedPage() {
   const supabase = await createClient();
@@ -27,7 +28,7 @@ export default async function SuspendedPage() {
         Your account has been {profile.status} by an admin.
         {profile.status_reason && <> Reason given: {profile.status_reason}</>}
       </p>
-      <p className="lede-sm">If you believe this is a mistake, please reach out to support.</p>
+      <p className="lede-sm">If you believe this is a mistake, please email us at <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>.</p>
       <SignOutButton />
     </main>
   );

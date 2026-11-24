@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AppHeader from "@/components/app-header";
 import PayWithPaystack from "./pay-with-paystack";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site";
 
 export default async function PaymentInfoPage() {
   const supabase = await createClient();
@@ -115,6 +116,9 @@ export default async function PaymentInfoPage() {
           })}
         </>
       )}
+      <p style={{ fontSize: 14, color: "var(--ink-600)", marginTop: 24 }}>
+        Problem with a payment? Email <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a> with your payment reference.
+      </p>
     </main>
   );
 }

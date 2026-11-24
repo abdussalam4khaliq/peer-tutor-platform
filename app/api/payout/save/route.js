@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createSubaccount } from "@/lib/paystack";
 import { getActiveUser, verifyAccountInput } from "@/lib/payout";
+import { SUPPORT_EMAIL } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,7 +67,7 @@ export async function POST(request) {
       p_profile_id: auth.user.id,
       p_type: "payment",
       p_title: "Payout account changed",
-      p_body: `Your earnings will now be sent to ${result.bank.name} ending ${result.accountNumber.slice(-4)}. If this wasn't you, contact an admin right away.`,
+      p_body: `Your earnings will now be sent to ${result.bank.name} ending ${result.accountNumber.slice(-4)}. If this wasn't you, email ${SUPPORT_EMAIL} right away.`,
       p_link: "/payouts",
     });
   }

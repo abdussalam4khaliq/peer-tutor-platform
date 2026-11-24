@@ -1,5 +1,6 @@
 import AudienceToggle from "@/components/audience-toggle";
 import NavMenu from "@/components/nav-menu";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site";
 
 export default function Home() {
   return (
@@ -99,7 +100,7 @@ export default function Home() {
                 <span className="step__num">3</span>
                 <div>
                   <p className="step__title">Get approved, start teaching</p>
-                  <p className="step__body">Build out your topics, and earn as students subscribe to your course.</p>
+                  <p className="step__body">Build out your topics, and earn as students subscribe. Your share is paid straight to your bank account.</p>
                 </div>
               </div>
             </div>
@@ -126,8 +127,8 @@ export default function Home() {
               <p className="feature__body">The first two topics of every course, no account trickery required.</p>
             </div>
             <div className="feature">
-              <p className="feature__title">Earn by referring</p>
-              <p className="feature__body">Share your code. Earn ₦150 the moment someone you referred becomes a paying student.</p>
+              <p className="feature__title">Refer a classmate</p>
+              <p className="feature__body">Share your code. When someone you referred becomes a paying student, Tutors earn a cash bonus paid straight to their bank account, and everyone else earns extra days of access.</p>
             </div>
           </div>
         </div>
@@ -138,11 +139,11 @@ export default function Home() {
           <div className="referral">
             <div>
               <h3>Everyone gets a referral code</h3>
-              <p>Share your link with classmates. The first time someone you referred pays for a course, you earn ₦100 — tracked right on your dashboard.</p>
+              <p>Share your link with classmates. When someone you referred pays for a course, you&apos;re rewarded: Tutors get a cash bonus paid straight to their bank account, and everyone else gets extra days of access. It&apos;s all tracked on your dashboard.</p>
             </div>
             <div className="referral-code">
               <div className="referral-code__label">Your dashboard shows</div>
-              <div className="referral-code__value">coursemate.app/signup?ref=7F3K9D2A</div>
+              <div className="referral-code__value">virtualcoursemate.com.ng/signup?ref=7F3K9D2A</div>
             </div>
           </div>
         </div>
@@ -162,6 +163,7 @@ export default function Home() {
           <a href="#how-it-works">How it works</a>
           <a href="/terms">Terms</a>
           <a href="/privacy">Privacy</a>
+          <a href={SUPPORT_MAILTO}>Contact</a>
         </div>
         <div>© {new Date().getFullYear()} Coursemate</div>
       </footer>

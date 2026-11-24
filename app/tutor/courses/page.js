@@ -40,8 +40,10 @@ export default async function TutorCoursesPage() {
         {myCourses.map((c) => (
           <li key={c.id} className="card">
             <strong>{c.code} — {c.title}</strong>
-            <div style={{ marginTop: 6 }}>
-              <a href={`/tutor/courses/${c.id}`}>Manage content →</a>
+            <div className="action-row" style={{ marginTop: 10 }}>
+              <a className="btn btn-sm" href={`/tutor/courses/${c.id}`}>Manage content</a>
+              <a className="btn btn-outline btn-sm" href={`/courses/${c.id}/forum`}>Forum</a>
+              <a className="btn btn-outline btn-sm" href={`/tutor/courses/${c.id}/quizzes`}>Quizzes</a>
             </div>
           </li>
         ))}

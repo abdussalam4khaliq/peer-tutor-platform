@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import ApplyForm from "./apply-form";
 import { canApplyToTutor, getMaxCoursesForRole } from "@/lib/config";
 import AppHeader from "@/components/app-header";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site";
 
 export default async function ApplyTutorPage() {
   const supabase = await createClient();
@@ -71,7 +72,7 @@ export default async function ApplyTutorPage() {
       <main className="app-container app-container--narrow">
         <AppHeader profile={profile} />
         <h1>Application limit reached</h1>
-        <p>You&apos;ve had 3 applications rejected. Please contact an admin directly if you&apos;d like to be reconsidered.</p>
+        <p>You&apos;ve had 3 applications rejected. Please email <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a> if you&apos;d like to be reconsidered.</p>
       </main>
     );
   }

@@ -81,9 +81,11 @@ export default async function ManageCourseContentPage({ params }) {
         </details>
       )}
 
-      <p>
+      <div className="action-row" style={{ margin: "12px 0" }}>
+        <a className="btn btn-outline btn-sm" href={`/courses/${course.id}/forum`}>Course forum →</a>
         <a className="btn btn-outline btn-sm" href={`/tutor/courses/${course.id}/quizzes`}>Timed quizzes →</a>
-      </p>
+        <a className="btn btn-outline btn-sm" href={`/courses/${course.id}`}>See it as students do →</a>
+      </div>
 
       <TopicManager
         courseId={course.id}

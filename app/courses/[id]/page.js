@@ -7,6 +7,7 @@ import RatingWidget from "@/components/rating-widget";
 import VideoEmbed from "@/components/video-embed";
 import CourseReader from "@/components/course-reader";
 import TopicOutline from "@/components/topic-outline";
+import OfflineStatus from "@/components/offline-status";
 import { computeTopicStates, pickResumeIndex } from "@/lib/topic-lock";
 import { quizPhase, PHASE_BADGE } from "@/lib/quiz";
 import { formatDate, formatDateTime } from "@/lib/format";
@@ -199,6 +200,8 @@ export default async function CourseDetailPage({ params, searchParams }) {
           <a href="/payment-info">See how to unlock full access →</a>
         </p>
       )}
+
+      <OfflineStatus />
 
       {topicList.length === 0 ? (
         <p>No content added yet.</p>

@@ -3,6 +3,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import RegisterServiceWorker from "@/components/register-sw";
 import InstallPrompt from "@/components/install-prompt";
+import OfflineBanner from "@/components/offline-banner";
 import AnalyticsProvider from "@/components/analytics-provider";
 
 const fraunces = Fraunces({
@@ -71,6 +72,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable}`}>
         <RegisterServiceWorker />
+        <OfflineBanner />
         <InstallPrompt />
         <Suspense fallback={null}>
           <AnalyticsProvider />

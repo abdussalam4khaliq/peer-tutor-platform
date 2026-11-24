@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyTransaction } from "@/lib/paystack";
 import AppHeader from "@/components/app-header";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +97,7 @@ export default async function PaymentCallbackPage({ searchParams }) {
         <div className="card">
           <p><span className="badge badge-amber">Payment not completed</span></p>
           <p>
-            The payment didn&apos;t go through. If you were charged, contact support with reference{" "}
+            The payment didn&apos;t go through. If you were charged, email <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a> with reference{" "}
             <strong>{reference}</strong>.
           </p>
           <p><a href="/payment-info">Try again →</a></p>
